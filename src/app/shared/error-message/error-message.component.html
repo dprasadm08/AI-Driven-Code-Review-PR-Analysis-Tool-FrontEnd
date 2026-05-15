@@ -1,0 +1,1 @@
+<div *ngIf=\"message\" class=\"alert\" [ngClass]=\"'alert-' + type\">\n  <span class=\"alert-icon\">{{ type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️' }}</span>\n  <span class=\"alert-message\">{{ message }}</span>\n</div>\n

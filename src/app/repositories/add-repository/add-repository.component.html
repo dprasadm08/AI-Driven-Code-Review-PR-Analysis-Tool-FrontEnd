@@ -1,0 +1,21 @@
+<div class="container">
+  <h1>Add Repository</h1>
+  <p>Connect a GitHub repository for analysis</p>
+  
+  <div class="card">
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label class="form-label">Repository URL</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          [(ngModel)]="repositoryUrl"
+          name="repositoryUrl"
+          placeholder="https://github.com/username/repository"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Add Repository</button>
+      <a routerLink="../list" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+import { Component, Input } from '@angular/core';\n\n@Component({\n  selector: 'app-loading-spinner',\n  templateUrl: './loading-spinner.component.html',\n  styleUrls: ['./loading-spinner.component.css']\n})\nexport class LoadingSpinnerComponent {\n  @Input() message: string = 'Loading...';\n}\n

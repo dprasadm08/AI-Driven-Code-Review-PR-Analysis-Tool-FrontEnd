@@ -1,0 +1,47 @@
+<div class="dashboard-container">
+  <h1>Dashboard</h1>
+  <p class="dashboard-subtitle">Welcome to AI-Powered Pull Request Analysis</p>
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div class="stat-content">
+        <h3>{{ stats.totalRepositories }}</h3>
+        <p>Total Repositories</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">🔀</div>
+      <div class="stat-content">
+        <h3>{{ stats.totalPullRequests }}</h3>
+        <p>Pull Requests</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <h3>{{ stats.analyzedToday }}</h3>
+        <p>Analyzed Today</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-content">
+        <h3>{{ stats.pendingReviews }}</h3>
+        <p>Pending Reviews</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card mt-3">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+      <a routerLink="/repositories" class="btn btn-primary">View Repositories</a>
+      <a routerLink="/pull-requests" class="btn btn-secondary">View Pull Requests</a>
+      <a routerLink="/analysis" class="btn btn-secondary">View Analysis</a>
+    </div>
+  </div>
+</div>
