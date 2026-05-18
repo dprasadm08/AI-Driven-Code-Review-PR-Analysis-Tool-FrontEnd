@@ -1,71 +1,199 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Create Account</h2>
-    <p class="auth-subtitle">Start reviewing code with AI today</p>
+    <div class="auth-header">
+      <div class="auth-logo">
+        <span class="logo-icon">🚀</span>
+      </div>
+      <h2>Create Your Account</h2>
+      <p class="auth-subtitle">Join AI PR Review and start analyzing code today</p>
+    </div>
     
-    <app-error-message [message]="errorMessage" type="error"></app-error-message>
-    <app-error-message [message]="successMessage" type="info"></app-error-message>
+    <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
+    <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
     
-    <form (ngSubmit)="onSubmit()" class="auth-form">
+    <form (ngSubmit)="onSubmit()" class="auth-form" #signupForm="ngForm">
       <div class="form-group">
-        <label class="form-label" for="username">Username</label>
+        <label class="form-label" for="username">
+          <span class="label-icon">👤</span>
+          Username
+        </label>
         <input
           type="text"
           id="username"
           class="form-control"
+          [class.error]="formErrors.username"
           [(ngModel)]="username"
+          (ngModelChange)="onFieldChange('username')"
+          (blur)="validateUsername()"
           name="username"
           required
           placeholder="Choose a username"
+          autocomplete="username"
+          [disabled]="isLoading"
         />
+        <span *ngIf="formErrors.username" class="error-text">{{ formErrors.username }}</span>
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="email">Email</label>
+        <label class="form-label" for="email">
+          <span class="label-icon">📧</span>
+          Email Address
+        </label>
         <input
           type="email"
           id="email"
           class="form-control"
+          [class.error]="formErrors.email"
           [(ngModel)]="email"
+          (ngModelChange)="onFieldChange('email')"
+          (blur)="validateEmail()"
           name="email"
           required
           placeholder="Enter your email"
+          autocomplete="email"
+          [disabled]="isLoading"
         />
+        <span *ngIf="formErrors.email" class="error-text">{{ formErrors.email }}</span>
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          class="form-control"
-          [(ngModel)]="password"
-          name="password"
-          required
-          placeholder="Create a password"
-        />
+        <label class="form-label" for="password">
+          <span class="label-icon">🔒</span>
+          Password
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            class="form-control password-input"
+            [class.error]="formErrors.password"
+            [(ngModel)]="password"
+            (ngModelChange)="onPasswordChange()"
+            (blur)="validatePassword()"
+            name="password"
+            required
+            placeholder="Create a strong password"
+            autocomplete="new-password"
+            [disabled]="isLoading"
+          />
+          <button 
+            type="button" 
+            class="password-toggle"
+            (click)="togglePasswordVisibility('password')"
+            [disabled]="isLoading"
+            tabindex="-1"
+          >
+            <span *ngIf="!showPassword">👁️</span>
+            <span *ngIf="showPassword">🙈</span>
+          </button>
+        </div>
+        <span *ngIf="formErrors.password" class="error-text">{{ formErrors.password }}</span>
+        
+        <!-- Password Strength Indicator -->
+        <div *ngIf="password && !formErrors.password" class="password-strength">
+          <div class="strength-bar">
+            <div 
+              class="strength-fill" 
+              [style.width.%]="(passwordStrength.score / 6) * 100"
+              [style.background-color]="passwordStrength.color"
+            ></div>
+          </div>
+          <span class="strength-label" [style.color]="passwordStrength.color">
+            {{ passwordStrength.label }}
+          </span>
+        </div>
+        
+        <div *ngIf="password" class="password-requirements">
+          <p class="requirements-title">Password must contain:</p>
+          <ul>
+            <li [class.met]="password.length >= 8">✓ At least 8 characters</li>
+            <li [class.met]="/[a-z]/.test(password) && /[A-Z]/.test(password)">✓ Uppercase & lowercase letters</li>
+            <li [class.met]="/[0-9]/.test(password)">✓ At least one number</li>
+            <li [class.met]="/[^a-zA-Z0-9]/.test(password)">✓ At least one special character</li>
+          </ul>
+        </div>
       </div>
       
       <div class="form-group">
-        <label class="form-label" for="confirmPassword">Confirm Password</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          class="form-control"
-          [(ngModel)]="confirmPassword"
-          name="confirmPassword"
-          required
-          placeholder="Confirm your password"
-        />
+        <label class="form-label" for="confirmPassword">
+          <span class="label-icon">🔐</span>
+          Confirm Password
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            class="form-control password-input"
+            [class.error]="formErrors.confirmPassword"
+            [class.success]="confirmPassword && !formErrors.confirmPassword && password === confirmPassword"
+            [(ngModel)]="confirmPassword"
+            (ngModelChange)="onFieldChange('confirmPassword')"
+            (blur)="validateConfirmPassword()"
+            name="confirmPassword"
+            required
+            placeholder="Re-enter your password"
+            autocomplete="new-password"
+            [disabled]="isLoading"
+          />
+          <button 
+            type="button" 
+            class="password-toggle"
+            (click)="togglePasswordVisibility('confirm')"
+            [disabled]="isLoading"
+            tabindex="-1"
+          >
+            <span *ngIf="!showConfirmPassword">👁️</span>
+            <span *ngIf="showConfirmPassword">🙈</span>
+          </button>
+        </div>
+        <span *ngIf="formErrors.confirmPassword" class="error-text">{{ formErrors.confirmPassword }}</span>
+        <span *ngIf="confirmPassword && !formErrors.confirmPassword && password === confirmPassword" class="success-text">
+          ✓ Passwords match
+        </span>
       </div>
       
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="isLoading">
-        {{ isLoading ? 'Creating account...' : 'Sign Up' }}
+      <div class="form-group">
+        <label class="checkbox-label terms-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="agreeToTerms"
+            (ngModelChange)="onFieldChange('terms')"
+            name="agreeToTerms"
+            [disabled]="isLoading"
+          />
+          <span>
+            I agree to the <a href="#" class="link">Terms of Service</a> 
+            and <a href="#" class="link">Privacy Policy</a>
+          </span>
+        </label>
+        <span *ngIf="formErrors.terms" class="error-text">{{ formErrors.terms }}</span>
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-full" 
+        [disabled]="isLoading || !username || !email || !password || !confirmPassword || !agreeToTerms"
+      >
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading" class="loading-text">
+          <span class="spinner-small"></span>
+          Creating account...
+        </span>
       </button>
     </form>
     
-    <p class="auth-footer">
-      Already have an account? <a routerLink="/auth/login">Sign in</a>
-    </p>
+    <div class="auth-divider">
+      <span>or</span>
+    </div>
+    
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/auth/login" class="login-link">Sign in</a></p>
+    </div>
+  </div>
+  
+  <div class="auth-info">
+    <p>✨ Free forever plan available</p>
+    <p>🔒 Your data is encrypted and secure</p>
+    <p>🎯 Start analyzing PRs in minutes</p>
   </div>
 </div>
