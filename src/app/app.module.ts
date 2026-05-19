@@ -9,7 +9,11 @@ import { SharedModule } from './shared/shared.module';
 
 // Core
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
 import { AuthGuard } from './core/guards/auth.guard';
+import { NoAuthGuard } from './core/guards/no-auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 @NgModule({
   declarations: [
@@ -24,10 +28,24 @@ import { AuthGuard } from './core/guards/auth.guard';
     SharedModule
   ],
   providers: [
+    // Guards
     AuthGuard,
+    NoAuthGuard,
+    RoleGuard,
+    // HTTP Interceptors (order matters!)
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
       multi: true
     }
   ],
