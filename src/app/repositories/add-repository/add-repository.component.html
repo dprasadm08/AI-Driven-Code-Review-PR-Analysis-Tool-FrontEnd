@@ -1,21 +1,211 @@
 <div class="container">
-  <h1>Add Repository</h1>
-  <p>Connect a GitHub repository for analysis</p>
+  <div class="page-header">
+    <h1>Add Repository</h1>
+    <p class="subtitle">Connect a GitHub repository for AI-powered code analysis</p>
+  </div>
   
-  <div class="card">
-    <form (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label class="form-label">Repository URL</label>
-        <input 
-          type="text" 
-          class="form-control" 
-          [(ngModel)]="repositoryUrl"
-          name="repositoryUrl"
-          placeholder="https://github.com/username/repository"
-        />
+  <div class="form-container">
+    <div class="card">
+      <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
+      <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
+      
+      <form (ngSubmit)="onSubmit()" class="repository-form" #addRepoForm="ngForm">
+        
+        <!-- Repository URL -->
+        <div class="form-group">
+          <label class="form-label" for="repositoryUrl">
+            <span class="label-icon">📁</span>
+            Repository URL
+            <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="repositoryUrl"
+            class="form-control" 
+            [class.error]="formErrors.url"
+            [class.success]="urlValidation.isValid"
+            [(ngModel)]="repositoryUrl"
+            (ngModelChange)="onUrlChange()"
+            (blur)="validateUrl()"
+            name="repositoryUrl"
+            placeholder="https://github.com/username/repository"
+            [disabled]="isLoading"
+            required
+          />
+          <span *ngIf="formErrors.url" class="error-text">{{ formErrors.url }}</span>
+          
+          <!-- URL Validation Success -->
+          <div *ngIf="urlValidation.isValid && !formErrors.url" class="url-info">
+            <span class="success-icon">✓</span>
+            <span class="info-text">
+              Repository: <strong>{{ urlValidation.owner }}/{{ urlValidation.repo }}</strong>
+            </span>
+          </div>
+          
+          <div class="help-text">
+            <p>Supported formats:</p>
+            <ul>
+              <li>https://github.com/owner/repository</li>
+              <li>git@github.com:owner/repository.git</li>
+              <li>owner/repository</li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Branch Name -->
+        <div class="form-group">
+          <label class="form-label" for="branch">
+            <span class="label-icon">🌿</span>
+            Default Branch
+            <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="branch"
+            class="form-control" 
+            [class.error]="formErrors.branch"
+            [(ngModel)]="branch"
+            (blur)="validateBranch()"
+            name="branch"
+            placeholder="main"
+            [disabled]="isLoading"
+            required
+          />
+          <span *ngIf="formErrors.branch" class="error-text">{{ formErrors.branch }}</span>
+          <p class="help-text">Specify the default branch to analyze (e.g., main, master, develop)</p>
+        </div>
+        
+        <!-- Access Token Toggle -->
+        <div class="form-group">
+          <div class="checkbox-wrapper">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="useAccessToken"
+                (change)="toggleAccessToken()"
+                name="useAccessToken"
+                [disabled]="isLoading"
+              />
+              <span>This is a private repository (requires access token)</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Access Token Field -->
+        <div class="form-group" *ngIf="useAccessToken">
+          <label class="form-label" for="accessToken">
+            <span class="label-icon">🔑</span>
+            GitHub Personal Access Token
+            <span class="required">*</span>
+          </label>
+          <input 
+            type="password" 
+            id="accessToken"
+            class="form-control" 
+            [class.error]="formErrors.accessToken"
+            [(ngModel)]="accessToken"
+            (blur)="validateAccessToken()"
+            name="accessToken"
+            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+            [disabled]="isLoading"
+          />
+          <span *ngIf="formErrors.accessToken" class="error-text">{{ formErrors.accessToken }}</span>
+          <div class="help-text">
+            <p>Generate a token with <strong>repo</strong> scope from 
+              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">GitHub Settings</a>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="info-box">
+          <div class="info-icon">ℹ️</div>
+          <div class="info-content">
+            <h4>What happens next?</h4>
+            <ul>
+              <li>We'll connect to your GitHub repository</li>
+              <li>Fetch repository metadata and structure</li>
+              <li>Set up webhooks for pull request monitoring</li>
+              <li>Enable AI-powered code analysis</li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="onCancel()"
+            [disabled]="isLoading"
+          >
+            Cancel
+          </button>
+          
+          <button 
+            type="button" 
+            class="btn btn-outline" 
+            (click)="clearForm()"
+            [disabled]="isLoading"
+          >
+            Clear Form
+          </button>
+          
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="isLoading || !repositoryUrl || !branch"
+          >
+            <span *ngIf="!isLoading">
+              <span class="btn-icon">➕</span>
+              Add Repository
+            </span>
+            <span *ngIf="isLoading" class="loading-text">
+              <span class="spinner-small"></span>
+              Adding Repository...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Side Panel with Tips -->
+    <div class="tips-panel">
+      <div class="card">
+        <h3>💡 Quick Tips</h3>
+        
+        <div class="tip-item">
+          <div class="tip-icon">🔓</div>
+          <div class="tip-content">
+            <h4>Public Repositories</h4>
+            <p>Just paste the GitHub URL and click Add Repository!</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon">🔒</div>
+          <div class="tip-content">
+            <h4>Private Repositories</h4>
+            <p>Generate a Personal Access Token with <strong>repo</strong> scope from GitHub.</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon">🤖</div>
+          <div class="tip-content">
+            <h4>AI Analysis</h4>
+            <p>Once added, AI will automatically analyze new pull requests!</p>
+          </div>
+        </div>
+        
+        <div class="tip-item">
+          <div class="tip-icon">📊</div>
+          <div class="tip-content">
+            <h4>Dashboard Insights</h4>
+            <p>View code quality metrics, suggestions, and trends.</p>
+          </div>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary">Add Repository</button>
-      <a routerLink="../list" class="btn btn-secondary">Cancel</a>
-    </form>
+    </div>
   </div>
 </div>

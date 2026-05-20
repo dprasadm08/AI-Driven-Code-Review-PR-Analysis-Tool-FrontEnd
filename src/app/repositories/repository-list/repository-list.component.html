@@ -1,9 +1,158 @@
 <div class="container">
-  <h1>Repositories</h1>
-  <p>Manage your GitHub repositories for PR analysis</p>
-  
-  <div class="card">
-    <p>Repository list will be displayed here</p>
-    <a routerLink="../add" class="btn btn-primary">Add Repository</a>
+  <div class="page-header">
+    <div class="header-content">
+      <h1>My Repositories</h1>
+      <p class="subtitle">Manage GitHub repositories for AI-powered code analysis</p>
+    </div>
+    <button class="btn btn-primary" (click)="addRepository()">
+      <span class="btn-icon">➕</span>
+      Add Repository
+    </button>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Search repositories..."
+      />
+      <button class="search-btn" (click)="onSearch()">🔍</button>
+    </div>
+
+    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+      <option *ngFor="let option of statusOptions" [value]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+
+    <button class="btn btn-secondary btn-sm" (click)="clearFilters()" *ngIf="searchTerm || selectedStatus">
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+    <p class="loading-text">Loading repositories...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredRepositories.length === 0 && !errorMessage" class="empty-state">
+    <div class="empty-icon">📦</div>
+    <h2>No Repositories Found</h2>
+    <p *ngIf="!searchTerm && !selectedStatus">
+      Get started by adding your first GitHub repository for AI-powered code analysis.
+    </p>
+    <p *ngIf="searchTerm || selectedStatus">
+      No repositories match your filters. Try adjusting your search criteria.
+    </p>
+    <button class="btn btn-primary" (click)="addRepository()" *ngIf="!searchTerm && !selectedStatus">
+      <span class="btn-icon">➕</span>
+      Add Your First Repository
+    </button>
+  </div>
+
+  <!-- Repository Grid -->
+  <div *ngIf="!isLoading && filteredRepositories.length > 0" class="repository-grid">
+    <div *ngFor="let repo of filteredRepositories" class="repository-card">
+      
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="repo-info">
+          <h3 class="repo-name">
+            <span class="repo-icon">📁</span>
+            {{ repo.name }}
+          </h3>
+          <a [href]="repo.url" target="_blank" class="repo-link">
+            {{ repo.fullName }}
+            <span class="external-icon">↗</span>
+          </a>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass(repo.status)">
+          {{ repo.status || 'ACTIVE' }}
+        </span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <p class="repo-description" *ngIf="repo.description">
+          {{ repo.description }}
+        </p>
+        <p class="repo-description empty" *ngIf="!repo.description">
+          No description available
+        </p>
+
+        <!-- Repository Stats -->
+        <div class="repo-stats">
+          <div class="stat-item" *ngIf="repo.language">
+            <span class="stat-icon">💻</span>
+            <span class="stat-label">{{ repo.language }}</span>
+          </div>
+          <div class="stat-item" *ngIf="repo.stars !== undefined">
+            <span class="stat-icon">⭐</span>
+            <span class="stat-label">{{ repo.stars }}</span>
+          </div>
+          <div class="stat-item" *ngIf="repo.forks !== undefined">
+            <span class="stat-icon">🍴</span>
+            <span class="stat-label">{{ repo.forks }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-icon">🌿</span>
+            <span class="stat-label">{{ repo.defaultBranch }}</span>
+          </div>
+        </div>
+
+        <!-- Repository Meta -->
+        <div class="repo-meta">
+          <div class="meta-item">
+            <span class="meta-label">Added:</span>
+            <span class="meta-value">{{ formatDate(repo.createdAt) }}</span>
+          </div>
+          <div class="meta-item" *ngIf="repo.lastAnalyzedAt">
+            <span class="meta-label">Last Analyzed:</span>
+            <span class="meta-value">{{ formatDate(repo.lastAnalyzedAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button class="action-btn" (click)="syncRepository(repo)" title="Sync Repository">
+          <span class="action-icon">🔄</span>
+          Sync
+        </button>
+        <button class="action-btn" title="View Details">
+          <span class="action-icon">📊</span>
+          Details
+        </button>
+        <button class="action-btn delete" (click)="confirmDelete(repo)" title="Delete Repository">
+          <span class="action-icon">🗑️</span>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Repository Count -->
+  <div *ngIf="!isLoading && filteredRepositories.length > 0" class="repository-count">
+    Showing {{ filteredRepositories.length }} {{ filteredRepositories.length === 1 ? 'repository' : 'repositories' }}
   </div>
 </div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirmation-dialog
+  *ngIf="showDeleteDialog && repositoryToDelete"
+  [title]="'Delete Repository'"
+  [message]="'Are you sure you want to delete ' + repositoryToDelete.name + '? This action cannot be undone.'"
+  [confirmText]="'Delete'"
+  [cancelText]="'Cancel'"
+  (confirm)="deleteRepository()"
+  (cancel)="cancelDelete()"
+></app-confirmation-dialog>
