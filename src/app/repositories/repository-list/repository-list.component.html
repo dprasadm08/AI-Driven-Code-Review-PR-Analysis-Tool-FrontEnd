@@ -4,10 +4,26 @@
       <h1>My Repositories</h1>
       <p class="subtitle">Manage GitHub repositories for AI-powered code analysis</p>
     </div>
-    <button class="btn btn-primary" (click)="addRepository()">
-      <span class="btn-icon">➕</span>
-      Add Repository
-    </button>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="fetchRepositories()" [disabled]="isFetching">
+        <span *ngIf="!isFetching">
+          <span class="btn-icon">🔄</span>
+          Fetch Repositories
+        </span>
+        <span *ngIf="isFetching" class="loading-text">
+          <span class="spinner-small"></span>
+          Fetching...
+        </span>
+      </button>
+      <button class="btn btn-outline" (click)="toggleViewMode()" title="Toggle view">
+        <span class="btn-icon">{{ viewMode === 'table' ? '📊' : '📇' }}</span>
+        {{ viewMode === 'table' ? 'Card View' : 'Table View' }}
+      </button>
+      <button class="btn btn-primary" (click)="addRepository()">
+        <span class="btn-icon">➕</span>
+        Add Repository
+      </button>
+    </div>
   </div>
 
   <!-- Filters and Search -->
@@ -34,6 +50,9 @@
     </button>
   </div>
 
+  <!-- Success Message -->
+  <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
+  
   <!-- Error Message -->
   <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
 
@@ -59,8 +78,88 @@
     </button>
   </div>
 
-  <!-- Repository Grid -->
-  <div *ngIf="!isLoading && filteredRepositories.length > 0" class="repository-grid">
+  <!-- TABLE VIEW -->
+  <div *ngIf="!isLoading && filteredRepositories.length > 0 && viewMode === 'table'" class="table-container">
+    <table class="repository-table">
+      <thead>
+        <tr>
+          <th>Repository</th>
+          <th>Owner</th>
+          <th>Status</th>
+          <th>Language</th>
+          <th>Branch</th>
+          <th>Stats</th>
+          <th>Last Analyzed</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let repo of filteredRepositories" class="table-row">
+          <td class="repo-cell">
+            <div class="repo-name-cell">
+              <span class="repo-icon">📁</span>
+              <div>
+                <strong class="repo-name">{{ repo.name }}</strong>
+                <a [href]="repo.url" target="_blank" class="repo-link-small">
+                  View on GitHub ↗
+                </a>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="owner-badge">{{ repo.owner }}</span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(repo.status)">
+              {{ repo.status || 'ACTIVE' }}
+            </span>
+          </td>
+          <td>
+            <span class="language-badge" *ngIf="repo.language">
+              <span class="lang-icon">💻</span>
+              {{ repo.language }}
+            </span>
+            <span *ngIf="!repo.language" class="text-muted">—</span>
+          </td>
+          <td>
+            <span class="branch-badge">
+              <span class="branch-icon">🌿</span>
+              {{ repo.defaultBranch }}
+            </span>
+          </td>
+          <td>
+            <div class="stats-cell">
+              <span *ngIf="repo.stars !== undefined" class="stat-mini">
+                ⭐ {{ repo.stars }}
+              </span>
+              <span *ngIf="repo.forks !== undefined" class="stat-mini">
+                🍴 {{ repo.forks }}
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="date-text">{{ formatDate(repo.lastAnalyzedAt) }}</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="action-btn-small sync" (click)="syncRepository(repo)" title="Sync">
+                🔄
+              </button>
+              <button class="action-btn-small view" title="View Details">
+                📊
+              </button>
+              <button class="action-btn-small delete" (click)="confirmDelete(repo)" title="Delete">
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CARD VIEW (existing grid) -->
+  <div *ngIf="!isLoading && filteredRepositories.length > 0 && viewMode === 'cards'" class="repository-grid">
     <div *ngFor="let repo of filteredRepositories" class="repository-card">
       
       <!-- Card Header -->

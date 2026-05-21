@@ -14,9 +14,12 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
   repositories: Repository[] = [];
   filteredRepositories: Repository[] = [];
   isLoading = false;
+  isFetching = false;
   errorMessage = '';
+  successMessage = '';
   searchTerm = '';
   selectedStatus: RepositoryStatus | '' = '';
+  viewMode: 'table' | 'cards' = 'table'; // Default to table view
   
   // Confirmation dialog
   showDeleteDialog = false;
@@ -53,6 +56,7 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
   loadRepositories(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     const filters: RepositoryFilters = {
       status: this.selectedStatus || undefined,
@@ -74,6 +78,47 @@ export class RepositoryListComponent implements OnInit, OnDestroy {
           this.filteredRepositories = [];
         }
       });
+  }
+
+  /**
+   * Fetch/Refresh repositories manually
+   */
+  fetchRepositories(): void {
+    this.isFetching = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const filters: RepositoryFilters = {
+      status: this.selectedStatus || undefined,
+      searchTerm: this.searchTerm || undefined
+    };
+
+    this.repositoryService.getRepositories(filters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (repositories) => {
+          this.repositories = repositories;
+          this.filteredRepositories = repositories;
+          this.isFetching = false;
+          this.successMessage = `Successfully fetched ${repositories.length} repositories`;
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.errorMessage = error.message || 'Failed to fetch repositories';
+          this.isFetching = false;
+        }
+      });
+  }
+
+  /**
+   * Toggle view mode between table and cards
+   */
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'table' ? 'cards' : 'table';
   }
 
   /**
