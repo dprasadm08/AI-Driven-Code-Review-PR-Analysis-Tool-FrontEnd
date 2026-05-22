@@ -1,8 +1,219 @@
 <div class="container">
-  <h1>Pull Requests</h1>
-  <p>View and analyze pull requests from your repositories</p>
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Pull Requests</h1>
+      <p class="subtitle">View and analyze pull requests with AI-powered code review</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="fetchPullRequests()" [disabled]="isFetching">
+        <span *ngIf="!isFetching">
+          <span class="btn-icon">🔄</span>
+          Fetch Pull Requests
+        </span>
+        <span *ngIf="isFetching" class="loading-text">
+          <span class="spinner-small"></span>
+          Fetching...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Search pull requests..."
+      />
+      <button class="search-btn" (click)="onSearch()">🔍</button>
+    </div>
+
+    <select class="filter-select" [(ngModel)]="selectedRepository" (change)="applyFilters()">
+      <option value="">All Repositories</option>
+      <option *ngFor="let repo of repositories" [value]="repo.id">
+        {{ repo.owner }}/{{ repo.name }}
+      </option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedState" (change)="applyFilters()">
+      <option *ngFor="let option of stateOptions" [value]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedReviewStatus" (change)="applyFilters()">
+      <option *ngFor="let option of reviewOptions" [value]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedAnalysisStatus" (change)="applyFilters()">
+      <option *ngFor="let option of analysisOptions" [value]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+
+    <button class="btn btn-secondary btn-sm" (click)="clearFilters()" 
+            *ngIf="searchTerm || selectedRepository || selectedState || selectedReviewStatus || selectedAnalysisStatus">
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Success Message -->
+  <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
   
-  <div class="card">
-    <p>Pull request list will be displayed here</p>
+  <!-- Error Message -->
+  <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+    <p class="loading-text">Loading pull requests...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredPullRequests.length === 0 && !errorMessage" class="empty-state">
+    <div class="empty-icon">🔀</div>
+    <h2>No Pull Requests Found</h2>
+    <p *ngIf="!searchTerm && !selectedRepository">
+      Click "Fetch Pull Requests" to load pull requests from your repositories.
+    </p>
+    <p *ngIf="searchTerm || selectedRepository">
+      No pull requests match your filters. Try adjusting your search criteria.
+    </p>
+    <button class="btn btn-primary" (click)="fetchPullRequests()" *ngIf="!searchTerm && !selectedRepository">
+      <span class="btn-icon">🔄</span>
+      Fetch Pull Requests
+    </button>
+  </div>
+
+  <!-- Pull Requests Table -->
+  <div *ngIf="!isLoading && filteredPullRequests.length > 0" class="table-container">
+    <table class="pr-table">
+      <thead>
+        <tr>
+          <th>PR #</th>
+          <th>Title</th>
+          <th>Repository</th>
+          <th>Author</th>
+          <th>State</th>
+          <th>Review</th>
+          <th>AI Analysis</th>
+          <th>Score</th>
+          <th>Changes</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pr of filteredPullRequests" class="table-row">
+          <!-- PR Number -->
+          <td class="pr-number-cell">
+            <span class="pr-number">#{{ pr.number }}</span>
+          </td>
+
+          <!-- Title -->
+          <td class="title-cell">
+            <div class="title-content">
+              <a [href]="pr.url" target="_blank" class="pr-title">
+                {{ pr.title }}
+              </a>
+              <div class="branch-info">
+                <span class="branch-badge source">{{ pr.sourceBranch }}</span>
+                <span class="arrow">→</span>
+                <span class="branch-badge target">{{ pr.targetBranch }}</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Repository -->
+          <td>
+            <div class="repo-cell">
+              <span class="repo-icon">📁</span>
+              <span class="repo-name">{{ pr.repositoryOwner }}/{{ pr.repositoryName }}</span>
+            </div>
+          </td>
+
+          <!-- Author -->
+          <td>
+            <div class="author-cell">
+              <img *ngIf="pr.authorAvatar" [src]="pr.authorAvatar" [alt]="pr.author" class="avatar">
+              <span class="author-name">{{ pr.author }}</span>
+            </div>
+          </td>
+
+          <!-- State -->
+          <td>
+            <span class="state-badge" [ngClass]="getStateClass(pr.state)">
+              {{ pr.state }}
+            </span>
+          </td>
+
+          <!-- Review Status -->
+          <td>
+            <span class="review-badge" [ngClass]="getReviewClass(pr.reviewStatus)">
+              {{ pr.reviewStatus || 'NONE' }}
+            </span>
+          </td>
+
+          <!-- AI Analysis Status -->
+          <td>
+            <span class="analysis-badge" [ngClass]="getAnalysisClass(pr.aiAnalysisStatus)">
+              {{ pr.aiAnalysisStatus || 'PENDING' }}
+            </span>
+          </td>
+
+          <!-- AI Score -->
+          <td>
+            <span *ngIf="pr.aiScore" class="score-badge" [ngClass]="getScoreClass(pr.aiScore)">
+              {{ pr.aiScore }}
+            </span>
+            <span *ngIf="!pr.aiScore" class="text-muted">—</span>
+          </td>
+
+          <!-- Changes -->
+          <td>
+            <div class="changes-cell">
+              <span class="addition">+{{ pr.additions }}</span>
+              <span class="deletion">-{{ pr.deletions }}</span>
+              <span class="files-changed">📄 {{ pr.changedFiles }}</span>
+            </div>
+          </td>
+
+          <!-- Created -->
+          <td>
+            <div class="date-cell">
+              <span class="date-text" [title]="formatDate(pr.createdAt)">
+                {{ formatTimeAgo(pr.createdAt) }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="action-buttons">
+              <button 
+                class="action-btn-small analyze" 
+                (click)="triggerAnalysis(pr)" 
+                [disabled]="pr.aiAnalysisStatus === 'IN_PROGRESS'"
+                title="Analyze with AI">
+                🤖
+              </button>
+              <button class="action-btn-small view" (click)="viewDetails(pr)" title="View Details">
+                👁️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pull Request Count -->
+  <div *ngIf="!isLoading && filteredPullRequests.length > 0" class="pr-count">
+    Showing {{ filteredPullRequests.length }} pull {{ filteredPullRequests.length === 1 ? 'request' : 'requests' }}
   </div>
 </div>
