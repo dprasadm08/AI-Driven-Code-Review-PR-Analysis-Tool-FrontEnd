@@ -1,8 +1,470 @@
 <div class="container">
-  <h1>Pull Request Details</h1>
-  <p>Viewing PR #{{ prId }}</p>
-  
-  <div class="card">
-    <p>Pull request details will be displayed here</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+    <p class="loading-text">Loading pull request details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <app-error-message [message]="errorMessage" type="error"></app-error-message>
+    <button class="btn btn-secondary" (click)="goBack()">
+      <span class="btn-icon">←</span>
+      Back to Pull Requests
+    </button>
+  </div>
+
+  <!-- Success Message -->
+  <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
+
+  <!-- PR Details Content -->
+  <div *ngIf="pullRequest && !isLoading" class="pr-details">
+    
+    <!-- Header -->
+    <div class="pr-header">
+      <div class="header-left">
+        <button class="btn-back" (click)="goBack()">
+          <span class="icon">←</span> Back
+        </button>
+        <div class="pr-title-section">
+          <h1 class="pr-title">{{ pullRequest.title }}</h1>
+          <div class="pr-meta-line">
+            <span class="pr-number">#{{ pullRequest.number }}</span>
+            <span class="state-badge" [ngClass]="getStateClass(pullRequest.state)">
+              {{ pullRequest.state }}
+            </span>
+            <span class="meta-text">
+              Opened {{ formatTimeAgo(pullRequest.createdAt) }} by <strong>{{ pullRequest.author }}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="openInGitHub()">
+          <span class="btn-icon">↗</span>
+          Open in GitHub
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="triggerAnalysis()" 
+          [disabled]="isAnalyzing || pullRequest.aiAnalysisStatus === 'IN_PROGRESS'"
+          *ngIf="!pullRequest.aiScore || pullRequest.aiAnalysisStatus === 'FAILED'">
+          <span *ngIf="!isAnalyzing">
+            <span class="btn-icon">🤖</span>
+            Analyze with AI
+          </span>
+          <span *ngIf="isAnalyzing" class="loading-text">
+            <span class="spinner-small"></span>
+            Analyzing...
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'overview'" 
+        (click)="switchTab('overview')">
+        <span class="tab-icon">📋</span>
+        Overview
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'files'" 
+        (click)="switchTab('files')">
+        <span class="tab-icon">📄</span>
+        Files Changed ({{ pullRequest.changedFiles }})
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab === 'analysis'" 
+        (click)="switchTab('analysis')">
+        <span class="tab-icon">🤖</span>
+        AI Analysis
+        <span *ngIf="pullRequest.aiScore" class="score-mini" [ngClass]="getScoreClass(pullRequest.aiScore)">
+          {{ pullRequest.aiScore }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      
+      <!-- OVERVIEW TAB -->
+      <div *ngIf="activeTab === 'overview'" class="overview-tab">
+        <div class="content-grid">
+          
+          <!-- Left Column -->
+          <div class="main-content">
+            
+            <!-- Description -->
+            <div class="card">
+              <h2 class="card-title">Description</h2>
+              <div class="description" *ngIf="pullRequest.description">
+                {{ pullRequest.description }}
+              </div>
+              <p class="text-muted" *ngIf="!pullRequest.description">
+                No description provided.
+              </p>
+            </div>
+
+            <!-- Changes Summary -->
+            <div class="card">
+              <h2 class="card-title">Changes Summary</h2>
+              <div class="changes-summary">
+                <div class="stat-box">
+                  <div class="stat-icon">📝</div>
+                  <div class="stat-content">
+                    <div class="stat-value">{{ pullRequest.commits }}</div>
+                    <div class="stat-label">Commits</div>
+                  </div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-icon">📄</div>
+                  <div class="stat-content">
+                    <div class="stat-value">{{ pullRequest.changedFiles }}</div>
+                    <div class="stat-label">Files Changed</div>
+                  </div>
+                </div>
+                <div class="stat-box addition">
+                  <div class="stat-icon">+</div>
+                  <div class="stat-content">
+                    <div class="stat-value">{{ pullRequest.additions }}</div>
+                    <div class="stat-label">Additions</div>
+                  </div>
+                </div>
+                <div class="stat-box deletion">
+                  <div class="stat-icon">-</div>
+                  <div class="stat-content">
+                    <div class="stat-value">{{ pullRequest.deletions }}</div>
+                    <div class="stat-label">Deletions</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Branches -->
+            <div class="card">
+              <h2 class="card-title">Branches</h2>
+              <div class="branch-flow">
+                <div class="branch-item source">
+                  <span class="branch-icon">🌿</span>
+                  <span class="branch-name">{{ pullRequest.sourceBranch }}</span>
+                  <span class="branch-label">Source</span>
+                </div>
+                <div class="arrow">→</div>
+                <div class="branch-item target">
+                  <span class="branch-icon">🌿</span>
+                  <span class="branch-name">{{ pullRequest.targetBranch }}</span>
+                  <span class="branch-label">Target</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar -->
+          <div class="sidebar">
+            
+            <!-- Repository Info -->
+            <div class="card">
+              <h3 class="card-title-small">Repository</h3>
+              <div class="repo-info">
+                <span class="repo-icon">📁</span>
+                <div class="repo-details">
+                  <div class="repo-name">{{ pullRequest.repositoryName }}</div>
+                  <div class="repo-owner">{{ pullRequest.repositoryOwner }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Info -->
+            <div class="card">
+              <h3 class="card-title-small">Status</h3>
+              <div class="status-list">
+                <div class="status-item">
+                  <span class="status-label">State:</span>
+                  <span class="state-badge" [ngClass]="getStateClass(pullRequest.state)">
+                    {{ pullRequest.state }}
+                  </span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">Review:</span>
+                  <span class="review-badge" [ngClass]="getReviewClass(pullRequest.reviewStatus)">
+                    {{ pullRequest.reviewStatus || 'NONE' }}
+                  </span>
+                </div>
+                <div class="status-item">
+                  <span class="status-label">AI Analysis:</span>
+                  <span class="analysis-badge" [ngClass]="getAnalysisClass(pullRequest.aiAnalysisStatus)">
+                    {{ pullRequest.aiAnalysisStatus || 'PENDING' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Author Info -->
+            <div class="card">
+              <h3 class="card-title-small">Author</h3>
+              <div class="author-info">
+                <img *ngIf="pullRequest.authorAvatar" 
+                     [src]="pullRequest.authorAvatar" 
+                     [alt]="pullRequest.author" 
+                     class="author-avatar">
+                <span class="author-name">{{ pullRequest.author }}</span>
+              </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="card">
+              <h3 class="card-title-small">Timeline</h3>
+              <div class="timeline-list">
+                <div class="timeline-item">
+                  <span class="timeline-icon">📅</span>
+                  <div>
+                    <div class="timeline-label">Created</div>
+                    <div class="timeline-value">{{ formatDate(pullRequest.createdAt) }}</div>
+                  </div>
+                </div>
+                <div class="timeline-item">
+                  <span class="timeline-icon">🔄</span>
+                  <div>
+                    <div class="timeline-label">Updated</div>
+                    <div class="timeline-value">{{ formatDate(pullRequest.updatedAt) }}</div>
+                  </div>
+                </div>
+                <div class="timeline-item" *ngIf="pullRequest.mergedAt">
+                  <span class="timeline-icon">✅</span>
+                  <div>
+                    <div class="timeline-label">Merged</div>
+                    <div class="timeline-value">{{ formatDate(pullRequest.mergedAt) }}</div>
+                  </div>
+                </div>
+                <div class="timeline-item" *ngIf="pullRequest.closedAt && !pullRequest.mergedAt">
+                  <span class="timeline-icon">❌</span>
+                  <div>
+                    <div class="timeline-label">Closed</div>
+                    <div class="timeline-value">{{ formatDate(pullRequest.closedAt) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="card">
+              <h3 class="card-title-small">Activity</h3>
+              <div class="activity-stats">
+                <div class="activity-item">
+                  <span class="activity-icon">💬</span>
+                  <span>{{ pullRequest.comments }} Comments</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILES TAB -->
+      <div *ngIf="activeTab === 'files'" class="files-tab">
+        <div class="card">
+          <h2 class="card-title">Changed Files</h2>
+          <div class="files-summary">
+            <div class="summary-bar">
+              <span class="file-count">{{ pullRequest.changedFiles }} files changed</span>
+              <div class="change-counts">
+                <span class="addition-count">+{{ pullRequest.additions }}</span>
+                <span class="deletion-count">-{{ pullRequest.deletions }}</span>
+              </div>
+            </div>
+            <div class="diff-bar">
+              <div class="diff-addition" 
+                   [style.width]="(pullRequest.additions / (pullRequest.additions + pullRequest.deletions) * 100) + '%'">
+              </div>
+              <div class="diff-deletion" 
+                   [style.width]="(pullRequest.deletions / (pullRequest.additions + pullRequest.deletions) * 100) + '%'">
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-message">
+            <span class="info-icon">ℹ️</span>
+            <p>Detailed file diffs are available on GitHub. Click "Open in GitHub" to view the complete code changes.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI ANALYSIS TAB -->
+      <div *ngIf="activeTab === 'analysis'" class="analysis-tab">
+        
+        <!-- Loading Analysis -->
+        <div *ngIf="isLoadingAnalysis" class="loading-container-small">
+          <app-loading-spinner></app-loading-spinner>
+          <p class="loading-text">Loading AI analysis results...</p>
+        </div>
+
+        <!-- No Analysis Yet -->
+        <div *ngIf="!analysisResult && !isLoadingAnalysis" class="empty-analysis">
+          <div class="empty-icon">🤖</div>
+          <h2>No AI Analysis Available</h2>
+          <p>This pull request hasn't been analyzed yet. Click the "Analyze with AI" button to get insights.</p>
+          <button class="btn btn-primary" (click)="triggerAnalysis()" [disabled]="isAnalyzing">
+            <span *ngIf="!isAnalyzing">
+              <span class="btn-icon">🤖</span>
+              Analyze Now
+            </span>
+            <span *ngIf="isAnalyzing" class="loading-text">
+              <span class="spinner-small"></span>
+              Analyzing...
+            </span>
+          </button>
+        </div>
+
+        <!-- Analysis Results -->
+        <div *ngIf="analysisResult && !isLoadingAnalysis" class="analysis-results">
+          
+          <!-- Overall Score -->
+          <div class="card score-card">
+            <h2 class="card-title">AI Quality Score</h2>
+            <div class="score-display">
+              <div class="score-circle" [ngClass]="getScoreClass(analysisResult.score)">
+                <div class="score-value">{{ analysisResult.score }}</div>
+                <div class="score-label">/ 100</div>
+              </div>
+              <div class="score-summary">
+                <p>{{ analysisResult.summary }}</p>
+                <div class="analyzed-date">
+                  Analyzed {{ formatTimeAgo(analysisResult.analyzedAt) }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code Quality Metrics -->
+          <div class="card">
+            <h2 class="card-title">Code Quality Metrics</h2>
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label">Overall Score</div>
+                <div class="metric-value">{{ analysisResult.codeQuality.score }}/100</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" [style.width]="analysisResult.codeQuality.score + '%'"></div>
+                </div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Maintainability</div>
+                <div class="metric-value">{{ analysisResult.codeQuality.maintainability }}/100</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" [style.width]="analysisResult.codeQuality.maintainability + '%'"></div>
+                </div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Readability</div>
+                <div class="metric-value">{{ analysisResult.codeQuality.readability }}/100</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" [style.width]="analysisResult.codeQuality.readability + '%'"></div>
+                </div>
+              </div>
+              <div class="metric-item" *ngIf="analysisResult.codeQuality.testCoverage !== undefined">
+                <div class="metric-label">Test Coverage</div>
+                <div class="metric-value">{{ analysisResult.codeQuality.testCoverage }}%</div>
+                <div class="metric-bar">
+                  <div class="metric-fill" [style.width]="analysisResult.codeQuality.testCoverage + '%'"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Issues -->
+          <div class="card" *ngIf="analysisResult.securityIssues && analysisResult.securityIssues.length > 0">
+            <h2 class="card-title">Security Issues ({{ analysisResult.securityIssues.length }})</h2>
+            <div class="issues-list">
+              <div *ngFor="let issue of analysisResult.securityIssues" class="issue-item">
+                <div class="issue-header">
+                  <span class="severity-badge" [ngClass]="getSeverityClass(issue.severity)">
+                    {{ issue.severity }}
+                  </span>
+                  <h3 class="issue-title">{{ issue.title }}</h3>
+                </div>
+                <p class="issue-description">{{ issue.description }}</p>
+                <div class="issue-location">
+                  <span class="location-icon">📄</span>
+                  <span>{{ issue.file }}:{{ issue.line }}</span>
+                </div>
+                <div class="issue-recommendation">
+                  <strong>Recommendation:</strong> {{ issue.recommendation }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- No Security Issues -->
+          <div class="card" *ngIf="!analysisResult.securityIssues || analysisResult.securityIssues.length === 0">
+            <h2 class="card-title">Security Issues</h2>
+            <div class="success-message">
+              <span class="success-icon">✅</span>
+              <p>No security issues detected. Great job!</p>
+            </div>
+          </div>
+
+          <!-- Suggestions -->
+          <div class="card" *ngIf="analysisResult.suggestions && analysisResult.suggestions.length > 0">
+            <h2 class="card-title">Suggestions ({{ analysisResult.suggestions.length }})</h2>
+            <div class="suggestions-list">
+              <div *ngFor="let suggestion of analysisResult.suggestions" class="suggestion-item">
+                <div class="suggestion-header">
+                  <span class="suggestion-icon">{{ getSuggestionIcon(suggestion.type) }}</span>
+                  <span class="suggestion-type">{{ suggestion.type }}</span>
+                  <span class="priority-badge" [ngClass]="getPriorityClass(suggestion.priority)">
+                    {{ suggestion.priority }}
+                  </span>
+                </div>
+                <h3 class="suggestion-title">{{ suggestion.title }}</h3>
+                <p class="suggestion-description">{{ suggestion.description }}</p>
+                <div class="suggestion-location" *ngIf="suggestion.file">
+                  <span class="location-icon">📄</span>
+                  <span>{{ suggestion.file }}<span *ngIf="suggestion.line">:{{ suggestion.line }}</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complexity Metrics -->
+          <div class="card">
+            <h2 class="card-title">Complexity Metrics</h2>
+            <div class="complexity-grid">
+              <div class="complexity-item">
+                <div class="complexity-icon">🔄</div>
+                <div class="complexity-content">
+                  <div class="complexity-value">{{ analysisResult.complexity.cyclomaticComplexity }}</div>
+                  <div class="complexity-label">Cyclomatic Complexity</div>
+                </div>
+              </div>
+              <div class="complexity-item">
+                <div class="complexity-icon">🧠</div>
+                <div class="complexity-content">
+                  <div class="complexity-value">{{ analysisResult.complexity.cognitiveComplexity }}</div>
+                  <div class="complexity-label">Cognitive Complexity</div>
+                </div>
+              </div>
+              <div class="complexity-item">
+                <div class="complexity-icon">📏</div>
+                <div class="complexity-content">
+                  <div class="complexity-value">{{ analysisResult.complexity.linesOfCode }}</div>
+                  <div class="complexity-label">Lines of Code</div>
+                </div>
+              </div>
+              <div class="complexity-item">
+                <div class="complexity-icon">📊</div>
+                <div class="complexity-content">
+                  <div class="complexity-value">{{ analysisResult.complexity.averageFunctionLength }}</div>
+                  <div class="complexity-label">Avg Function Length</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

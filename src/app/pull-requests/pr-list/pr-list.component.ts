@@ -216,7 +216,7 @@ export class PrListComponent implements OnInit, OnDestroy {
    * View PR details
    */
   viewDetails(pr: PullRequest): void {
-    this.router.navigate(['/pull-requests/details', pr.id]);
+    this.router.navigate(['/pull-requests', pr.id]);
   }
 
   /**
