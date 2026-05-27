@@ -1,0 +1,258 @@
+<div class="container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Webhook Status</h1>
+      <p class="subtitle">Monitor and manage GitHub webhook connections</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="syncWebhooks()" [disabled]="isSyncing">
+        <span *ngIf="!isSyncing">
+          <span class="btn-icon">🔄</span>
+          Sync Webhooks
+        </span>
+        <span *ngIf="isSyncing" class="loading-text">
+          <span class="spinner-small"></span>
+          Syncing...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
+  <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon total">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.totalWebhooks }}</div>
+        <div class="stat-label">Total Webhooks</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.activeWebhooks }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon inactive">⏸️</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.inactiveWebhooks }}</div>
+        <div class="stat-label">Inactive</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon error">❌</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.errorWebhooks }}</div>
+        <div class="stat-label">Errors</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading-spinner></app-loading-spinner>
+    <p class="loading-text">Loading webhook status...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && webhooks.length === 0 && !errorMessage" class="empty-state">
+    <div class="empty-icon">🔗</div>
+    <h2>No Webhooks Configured</h2>
+    <p>Set up webhooks to enable automatic pull request analysis when new PRs are created.</p>
+    <button class="btn btn-primary" (click)="syncWebhooks()">
+      <span class="btn-icon">🔄</span>
+      Sync with GitHub
+    </button>
+  </div>
+
+  <!-- Webhooks Table -->
+  <div *ngIf="!isLoading && webhooks.length > 0" class="table-container">
+    <table class="webhook-table">
+      <thead>
+        <tr>
+          <th>Repository</th>
+          <th>Webhook URL</th>
+          <th>Status</th>
+          <th>Events</th>
+          <th>Last Triggered</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let webhook of webhooks" class="table-row">
+          <!-- Repository -->
+          <td class="repo-cell">
+            <div class="repo-info">
+              <span class="repo-icon">📁</span>
+              <div class="repo-details">
+                <div class="repo-name">{{ webhook.repositoryName }}</div>
+                <div class="repo-owner">{{ webhook.repositoryOwner }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Webhook URL -->
+          <td>
+            <div class="url-cell">
+              <span class="url-text">{{ webhook.webhookUrl }}</span>
+              <button 
+                class="copy-btn" 
+                (click)="copyToClipboard(webhook.webhookUrl, 'Webhook URL')" 
+                title="Copy URL">
+                📋
+              </button>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(webhook.status)">
+              {{ webhook.status }}
+            </span>
+          </td>
+
+          <!-- Events -->
+          <td>
+            <div class="events-cell">
+              <span class="event-count">{{ webhook.events.length }} events</span>
+              <div class="event-list">
+                <span *ngFor="let event of webhook.events" class="event-badge">
+                  {{ event }}
+                </span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Last Triggered -->
+          <td>
+            <span class="date-text" [title]="formatDate(webhook.lastTriggered)">
+              {{ formatTimeAgo(webhook.lastTriggered) }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="action-buttons">
+              <button 
+                class="action-btn test" 
+                (click)="testWebhook(webhook)" 
+                [disabled]="testingWebhookId === webhook.id"
+                title="Test Webhook">
+                <span *ngIf="testingWebhookId !== webhook.id">🧪</span>
+                <span *ngIf="testingWebhookId === webhook.id" class="spinner-tiny"></span>
+              </button>
+              <button 
+                class="action-btn setup" 
+                (click)="showSetup(webhook.repositoryId)" 
+                title="Setup Instructions">
+                📖
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Webhook Count -->
+  <div *ngIf="!isLoading && webhooks.length > 0" class="webhook-count">
+    Showing {{ webhooks.length }} webhook{{ webhooks.length === 1 ? '' : 's' }}
+  </div>
+</div>
+
+<!-- Setup Instructions Modal -->
+<div *ngIf="showSetupInstructions" class="modal-overlay" (click)="closeSetup()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Webhook Setup Instructions</h2>
+      <button class="modal-close" (click)="closeSetup()">✕</button>
+    </div>
+
+    <div class="modal-body" *ngIf="setupInstructions">
+      <div class="instruction-section">
+        <h3>📍 Step 1: Navigate to GitHub Repository Settings</h3>
+        <p>Go to your repository on GitHub and navigate to:</p>
+        <div class="code-box">
+          Settings → Webhooks → Add webhook
+        </div>
+      </div>
+
+      <div class="instruction-section">
+        <h3>🔗 Step 2: Configure Payload URL</h3>
+        <p>Copy and paste this webhook URL:</p>
+        <div class="copy-field">
+          <input type="text" readonly [value]="setupInstructions.webhookUrl" class="copy-input">
+          <button class="btn btn-sm" (click)="copyToClipboard(setupInstructions.webhookUrl, 'Webhook URL')">
+            📋 Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="instruction-section">
+        <h3>📦 Step 3: Set Content Type</h3>
+        <p>Select the content type:</p>
+        <div class="info-box">
+          <strong>{{ setupInstructions.contentType }}</strong>
+        </div>
+      </div>
+
+      <div class="instruction-section">
+        <h3>🔐 Step 4: Configure Secret</h3>
+        <p>Add this secret for secure webhook validation:</p>
+        <div class="copy-field">
+          <input type="password" readonly [value]="setupInstructions.secret" class="copy-input">
+          <button class="btn btn-sm" (click)="copyToClipboard(setupInstructions.secret, 'Secret')">
+            📋 Copy
+          </button>
+        </div>
+        <p class="help-text">⚠️ Keep this secret secure and never share it publicly.</p>
+      </div>
+
+      <div class="instruction-section">
+        <h3>🎯 Step 5: Select Events</h3>
+        <p>Choose which events trigger the webhook:</p>
+        <div class="events-grid">
+          <div *ngFor="let event of setupInstructions.events" class="event-item">
+            <span class="event-icon">✓</span>
+            <span>{{ event }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="instruction-section">
+        <h3>🔒 Step 6: SSL Verification</h3>
+        <div class="ssl-info">
+          <span class="ssl-icon" [class.enabled]="setupInstructions.sslVerification">
+            {{ setupInstructions.sslVerification ? '✅' : '❌' }}
+          </span>
+          <span>
+            SSL Verification: 
+            <strong>{{ setupInstructions.sslVerification ? 'Enabled (Recommended)' : 'Disabled' }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div class="instruction-section final">
+        <h3>🚀 Step 7: Activate Webhook</h3>
+        <p>Click "Add webhook" in GitHub to complete the setup.</p>
+        <div class="success-box">
+          <span class="success-icon">✨</span>
+          <p>Once configured, your webhook will automatically trigger AI analysis for new pull requests!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-primary" (click)="closeSetup()">
+        Got it!
+      </button>
+    </div>
+  </div>
+</div>
