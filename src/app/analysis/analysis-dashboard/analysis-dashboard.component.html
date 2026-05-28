@@ -1,9 +1,49 @@
 <div class="container">
-  <h1>Analysis Dashboard</h1>
-  <p>Overview of AI-powered code reviews</p>
-  
-  <div class="card">
-    <p>Analysis dashboard will be displayed here</p>
-    <a routerLink="../history" class="btn btn-primary">View History</a>
+  <div class="header-row">
+    <div>
+      <h1>Analysis Dashboard</h1>
+      <p class="subtitle">Your AI review insights and analysis summaries will appear here once analysis data is available.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="../history" class="btn btn-primary">View Past Analysis</a>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Total Analyses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Issues Found</div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-shell">
+    <div class="spinner"></div>
+    <p>Loading analysis dashboard...</p>
+  </div>
+
+  <div *ngIf="!isLoading && errorMessage" class="error-shell">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && analyses.length === 0" class="empty-state">
+    <div class="empty-icon">🧠</div>
+    <h2>No analysis results yet</h2>
+    <p>Once your project runs through the AI review pipeline, this dashboard will display summary cards, recent findings, and suggested improvements.</p>
+    <div class="empty-actions">
+      <a routerLink="../pull-requests" class="btn btn-secondary">Browse Pull Requests</a>
+      <a routerLink="../repositories" class="btn btn-outline">Manage Repositories</a>
+    </div>
   </div>
 </div>

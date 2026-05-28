@@ -7,8 +7,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AnalysisDashboardComponent implements OnInit {
   analyses: any[] = [];
+  isLoading = false;
+  errorMessage = '';
 
   ngOnInit(): void {
-    // TODO: Load analysis data from service
+    this.loadAnalysisShell();
+  }
+
+  loadAnalysisShell(): void {
+    this.isLoading = false;
+    this.errorMessage = '';
+    this.analyses = [];
   }
 }
