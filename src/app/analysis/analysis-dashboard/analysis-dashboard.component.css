@@ -101,12 +101,36 @@ h1 {
   min-width: 160px;
   text-decoration: none;
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-primary {
   background-color: #0366d6;
   color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0256c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(3, 102, 214, 0.4);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #f44747 0%, #f42929 100%);
+  color: white;
+}
+
+.btn-accent:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 71, 71, 0.4);
 }
 
 .btn-secondary {
@@ -118,6 +142,64 @@ h1 {
   background: transparent;
   color: #0366d6;
   border: 1px solid #0366d6;
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.spinner-tiny {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Messages */
+.message-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-message {
+  background-color: #e6ffed;
+  color: #22863a;
+  border: 1px solid #34d058;
+}
+
+.error-message {
+  background-color: #ffeef0;
+  color: #d73a49;
+  border: 1px solid #d73a49;
+}
+
+.message-icon {
+  font-size: 18px;
 }
 
 @media (max-width: 960px) {
