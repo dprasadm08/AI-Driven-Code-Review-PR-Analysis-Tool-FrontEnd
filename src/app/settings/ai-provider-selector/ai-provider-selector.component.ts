@@ -13,7 +13,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
   providers: AIProvider[] = [];
   selectedProvider: ProviderSelection | null = null;
   selectedModels: AIModel[] = [];
-  activeProviderId: string = ''; // Track currently active provider
   
   isLoading = false;
   isSaving = false;
@@ -35,29 +34,11 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadProviders();
     this.loadSelectedProvider();
-    this.subscribeToProviderUpdates();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  /**
-   * Subscribe to provider updates from service
-   */
-  subscribeToProviderUpdates(): void {
-    this.aiProviderService.selectedProvider$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((selection) => {
-        if (selection) {
-          this.selectedProvider = selection;
-          this.activeProviderId = selection.activeProvider.id;
-          this.selectedProviderId = selection.activeProvider.id;
-          this.selectedModelId = selection.selectedModel.id;
-          this.updateAvailableModels();
-        }
-      });
   }
 
   /**
@@ -73,14 +54,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
         next: (providers) => {
           this.providers = providers;
           this.isLoading = false;
-          // If no provider selected yet, select the first active one
-          if (!this.selectedProviderId && providers.length > 0) {
-            const activeProvider = providers.find(p => p.isActive);
-            if (activeProvider) {
-              this.selectedProviderId = activeProvider.id;
-              this.updateAvailableModels();
-            }
-          }
         },
         error: (error) => {
           this.errorMessage = error.message || 'Failed to load providers';
@@ -99,7 +72,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
         next: (selection) => {
           if (selection) {
             this.selectedProvider = selection;
-            this.activeProviderId = selection.activeProvider.id;
             this.selectedProviderId = selection.activeProvider.id;
             this.selectedModelId = selection.selectedModel.id;
             this.updateAvailableModels();
@@ -107,12 +79,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to load selected provider:', error);
-          // If no selection exists, use default or first available
-          if (this.providers.length > 0) {
-            const defaultProvider = this.providers.find(p => p.isActive) || this.providers[0];
-            this.selectedProviderId = defaultProvider.id;
-            this.updateAvailableModels();
-          }
         }
       });
   }
@@ -140,21 +106,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if provider is currently active
-   */
-  isProviderActive(providerId: string): boolean {
-    return this.activeProviderId === providerId;
-  }
-
-  /**
-   * Get currently selected model details
-   */
-  getCurrentModel(): AIModel | undefined {
-    const provider = this.providers.find(p => p.id === this.selectedProviderId);
-    return provider?.supportedModels.find(m => m.id === this.selectedModelId);
-  }
-
-  /**
    * Save provider selection
    */
   saveProvider(): void {
@@ -173,8 +124,7 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
         next: (selection) => {
           this.isSaving = false;
           this.selectedProvider = selection;
-          this.activeProviderId = selection.activeProvider.id;
-          this.successMessage = `✅ Successfully switched to ${selection.activeProvider.displayName}!`;
+          this.successMessage = `Successfully switched to ${selection.activeProvider.displayName}!`;
           this.apiKey = '';
           
           setTimeout(() => {
@@ -198,53 +148,6 @@ export class AIProviderSelectorComponent implements OnInit, OnDestroy {
     }
 
     this.testingProviderId = providerId;
-    const key = this.apiKey || this.selectedProvider?.config.apiKey || '';
-
-    this.aiProviderService.testProvider(providerId, key)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (result) => {
-          this.testingProviderId = null;
-          if (result.success) {
-            this.successMessage = `✅ ${result.message}`;
-          } else {
-            this.errorMessage = `❌ ${result.message}`;
-          }
-          
-          setTimeout(() => {
-            this.successMessage = '';
-            this.errorMessage = '';
-          }, 4000);
-        },
-        error: (error) => {
-          this.testingProviderId = null;
-          this.errorMessage = error.message || 'Connection test failed';
-        }
-      });
-  }
-
-  /**
-   * Get provider display info
-   */
-  getProviderInfo(providerId: string): AIProvider | undefined {
-    return this.providers.find(p => p.id === providerId);
-  }
-
-  /**
-   * Get selected model info
-   */
-  getSelectedModelInfo(): AIModel | undefined {
-    const provider = this.getProviderInfo(this.selectedProviderId);
-    return provider?.supportedModels.find(m => m.id === this.selectedModelId);
-  }
-
-  /**
-   * Toggle API key visibility
-   */
-  toggleApiKeyVisibility(): void {
-    this.showApiKey = !this.showApiKey;
-  }
-}
     const key = this.apiKey || this.selectedProvider?.config.apiKey || '';
 
     this.aiProviderService.testProvider(providerId, key)
