@@ -1,0 +1,150 @@
+<div class="bug-findings-container">
+  <!-- Header -->
+  <div class="findings-header">
+    <h2>🐛 Bug Findings & Issues</h2>
+    <div class="findings-summary">
+      <span class="summary-badge">Total Issues: <strong>{{ bugFindings.length }}</strong></span>
+      <span class="summary-badge critical" *ngIf="bugFindings | slice:0:1">
+        <strong>{{ (bugFindings | slice:0:1).length }}</strong> Critical
+      </span>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Search Issues</label>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search by title, file, or description..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Severity</label>
+      <select [(ngModel)]="selectedSeverity" (ngModelChange)="onSeverityChange()" class="filter-select">
+        <option value="all">All Severities</option>
+        <option *ngFor="let severity of severityOptions" [value]="severity">
+          {{ getSeverityIcon(severity) }} {{ severity | uppercase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Issue Type</label>
+      <select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()" class="filter-select">
+        <option value="all">All Types</option>
+        <option *ngFor="let type of typeOptions" [value]="type">
+          {{ getTypeIcon(type) }} {{ type | titlecase }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Analyzing code for issues...</p>
+  </div>
+
+  <!-- No Results State -->
+  <div class="no-results" *ngIf="!isLoading && filteredBugFindings.length === 0 && bugFindings.length === 0">
+    <div class="empty-state">
+      <span class="empty-icon">✅</span>
+      <h3>No Issues Found</h3>
+      <p>Trigger an analysis to detect code issues and security vulnerabilities.</p>
+    </div>
+  </div>
+
+  <!-- Filtered Empty State -->
+  <div class="no-results" *ngIf="!isLoading && filteredBugFindings.length === 0 && bugFindings.length > 0">
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <h3>No Issues Match Your Filters</h3>
+      <p>Try adjusting your search criteria.</p>
+    </div>
+  </div>
+
+  <!-- Issues Cards Grid -->
+  <div class="issues-grid" *ngIf="!isLoading && filteredBugFindings.length > 0">
+    <div class="issue-card" *ngFor="let bug of filteredBugFindings" [ngClass]="'severity-' + bug.severity">
+      <!-- Card Header -->
+      <div class="issue-header">
+        <div class="issue-title-section">
+          <span class="severity-indicator" [style.backgroundColor]="getSeverityColor(bug.severity)">
+            {{ getSeverityIcon(bug.severity) }}
+          </span>
+          <div>
+            <h3 class="issue-title">{{ bug.title }}</h3>
+            <span class="issue-type">{{ getTypeIcon(bug.type) }} {{ bug.type | titlecase }}</span>
+          </div>
+        </div>
+        <span class="severity-badge" [ngClass]="bug.severity">
+          {{ bug.severity | uppercase }}
+        </span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="issue-body">
+        <p class="issue-description">{{ bug.description }}</p>
+
+        <!-- File and Line Info -->
+        <div class="issue-meta">
+          <div class="meta-item">
+            <span class="meta-label">📄 File:</span>
+            <span class="meta-value">{{ bug.file }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">📍 Line:</span>
+            <span class="meta-value">{{ bug.lineNumber }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">⏰ Detected:</span>
+            <span class="meta-value">{{ bug.detectedAt | date:'short' }}</span>
+          </div>
+        </div>
+
+        <!-- Code Snippet -->
+        <div class="code-snippet" *ngIf="bug.codeSnippet">
+          <div class="code-label">💻 Code:</div>
+          <pre><code>{{ bug.codeSnippet }}</code></pre>
+        </div>
+
+        <!-- Suggestion -->
+        <div class="suggestion" *ngIf="bug.suggestion">
+          <div class="suggestion-label">💡 Suggestion:</div>
+          <p>{{ bug.suggestion }}</p>
+        </div>
+      </div>
+
+      <!-- Card Footer - Status Actions -->
+      <div class="issue-footer">
+        <div class="status-buttons">
+          <button 
+            class="status-btn open" 
+            [class.active]="bug.status === 'open'"
+            (click)="toggleStatus(bug, 'open')"
+            title="Mark as Open">
+            Open
+          </button>
+          <button 
+            class="status-btn resolved" 
+            [class.active]="bug.status === 'resolved'"
+            (click)="toggleStatus(bug, 'resolved')"
+            title="Mark as Resolved">
+            ✓ Resolved
+          </button>
+          <button 
+            class="status-btn ignored" 
+            [class.active]="bug.status === 'ignored'"
+            (click)="toggleStatus(bug, 'ignored')"
+            title="Ignore">
+            Ignore
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

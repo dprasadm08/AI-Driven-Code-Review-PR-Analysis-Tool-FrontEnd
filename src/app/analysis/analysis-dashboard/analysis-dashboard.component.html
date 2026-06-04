@@ -30,20 +30,20 @@
 
   <div class="dashboard-grid">
     <div class="stat-card">
-      <div class="stat-value">0</div>
-      <div class="stat-label">Total Analyses</div>
+      <div class="stat-value">{{ bugFindings.length }}</div>
+      <div class="stat-label">Total Issues Found</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">0</div>
-      <div class="stat-label">Completed</div>
+      <div class="stat-value">{{ (bugFindings | slice:0:1).length }}</div>
+      <div class="stat-label">Critical Issues</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">0</div>
-      <div class="stat-label">Pending</div>
+      <div class="stat-value">{{ (bugFindings | slice:1:3).length }}</div>
+      <div class="stat-label">High Priority</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">0</div>
-      <div class="stat-label">Issues Found</div>
+      <div class="stat-value">{{ (bugFindings | slice:3:100).length }}</div>
+      <div class="stat-label">Other Issues</div>
     </div>
   </div>
 
@@ -56,7 +56,15 @@
     <p>{{ errorMessage }}</p>
   </div>
 
-  <div *ngIf="!isLoading && !errorMessage && analyses.length === 0" class="empty-state">
+  <!-- Bug Findings Section -->
+  <div *ngIf="!isLoading">
+    <app-bug-findings 
+      [bugFindings]="bugFindings" 
+      [isLoading]="isBugFindingsLoading">
+    </app-bug-findings>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && bugFindings.length === 0 && !isBugFindingsLoading" class="empty-state">
     <div class="empty-icon">🧠</div>
     <h2>No analysis results yet</h2>
     <p>Once your project runs through the AI review pipeline, this dashboard will display summary cards, recent findings, and suggested improvements.</p>
@@ -66,3 +74,4 @@
     </div>
   </div>
 </div>
+
