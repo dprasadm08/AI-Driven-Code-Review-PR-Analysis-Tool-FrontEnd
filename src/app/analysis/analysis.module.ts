@@ -6,6 +6,7 @@ import { AnalysisDashboardComponent } from './analysis-dashboard/analysis-dashbo
 import { AnalysisHistoryComponent } from './analysis-history/analysis-history.component';
 import { AnalysisDetailsComponent } from './analysis-details/analysis-details.component';
 import { BugFindingsComponent } from './bug-findings/bug-findings.component';
+import { SecurityFindingsComponent } from './security-findings/security-findings.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
@@ -13,7 +14,8 @@ import { SharedModule } from '../shared/shared.module';
     AnalysisDashboardComponent,
     AnalysisHistoryComponent,
     AnalysisDetailsComponent,
-    BugFindingsComponent
+    BugFindingsComponent,
+    SecurityFindingsComponent
   ],
   imports: [
     CommonModule,

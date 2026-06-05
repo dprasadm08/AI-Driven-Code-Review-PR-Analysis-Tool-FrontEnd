@@ -64,6 +64,14 @@
     </app-bug-findings>
   </div>
 
+  <!-- Security Findings Section -->
+  <div *ngIf="!isLoading">
+    <app-security-findings 
+      [securityFindings]="securityFindings" 
+      [isLoading]="isSecurityFindingsLoading">
+    </app-security-findings>
+  </div>
+
   <div *ngIf="!isLoading && !errorMessage && bugFindings.length === 0 && !isBugFindingsLoading" class="empty-state">
     <div class="empty-icon">🧠</div>
     <h2>No analysis results yet</h2>

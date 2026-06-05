@@ -1,0 +1,4 @@
+<span [ngClass]="getBadgeClass()" [style.borderColor]="getSeverityColor()">
+  <span class="badge-icon" *ngIf="showIcon">{{ getSeverityIcon() }}</span>
+  <span class="badge-label" *ngIf="showLabel">{{ getSeverityLabel() }}</span>
+</span>

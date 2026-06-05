@@ -1,0 +1,196 @@
+<div class="security-findings-container">
+  <!-- Header -->
+  <div class="findings-header">
+    <div class="header-title">
+      <h2>🔒 Security Vulnerabilities</h2>
+      <p class="header-subtitle">Detected security issues and vulnerabilities in your code</p>
+    </div>
+    <div class="findings-summary">
+      <div class="summary-stat critical">
+        <div class="stat-number">{{ getCriticalsCount() }}</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="summary-stat high">
+        <div class="stat-number">{{ getHighCount() }}</div>
+        <div class="stat-label">High</div>
+      </div>
+      <div class="summary-stat medium">
+        <div class="stat-number">{{ (securityFindings.length - getCriticalsCount() - getHighCount()) }}</div>
+        <div class="stat-label">Other</div>
+      </div>
+      <div class="summary-stat risk-score">
+        <div class="stat-number">{{ getAverageRiskScore() }}</div>
+        <div class="stat-label">Avg Risk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Search Vulnerabilities</label>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search by title, file, or description..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Severity Level</label>
+      <select [(ngModel)]="selectedSeverity" (ngModelChange)="onSeverityChange()" class="filter-select">
+        <option value="all">All Severities</option>
+        <option *ngFor="let severity of severityOptions" [value]="severity">
+          {{ getSeverityIcon(severity) }} {{ severity | uppercase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Vulnerability Type</label>
+      <select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()" class="filter-select">
+        <option value="all">All Types</option>
+        <option *ngFor="let type of typeOptions" [value]="type">
+          {{ getVulnerabilityIcon(type) }} {{ type | titlecase }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Scanning for security vulnerabilities...</p>
+  </div>
+
+  <!-- No Results State -->
+  <div class="no-results" *ngIf="!isLoading && filteredFindings.length === 0 && securityFindings.length === 0">
+    <div class="empty-state">
+      <span class="empty-icon">✅</span>
+      <h3>No Security Issues Found</h3>
+      <p>Your code appears to be secure. Run a security scan to verify.</p>
+    </div>
+  </div>
+
+  <!-- Filtered Empty State -->
+  <div class="no-results" *ngIf="!isLoading && filteredFindings.length === 0 && securityFindings.length > 0">
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <h3>No Vulnerabilities Match Your Filters</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+  </div>
+
+  <!-- Vulnerability Cards -->
+  <div class="vulnerabilities-grid" *ngIf="!isLoading && filteredFindings.length > 0">
+    <div class="vulnerability-card" *ngFor="let finding of filteredFindings" [ngClass]="'severity-' + finding.severity">
+      <!-- Card Header -->
+      <div class="vulnerability-header">
+        <div class="title-section">
+          <span class="vuln-icon">{{ getVulnerabilityIcon(finding.vulnerabilityType) }}</span>
+          <div class="title-info">
+            <h3 class="vuln-title">{{ finding.title }}</h3>
+            <div class="vuln-metadata">
+              <span *ngIf="finding.cweId" class="meta-tag">CWE-{{ finding.cweId }}</span>
+              <span *ngIf="finding.owasp" class="meta-tag owasp">{{ finding.owasp }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-badges">
+          <app-severity-badge 
+            [severity]="finding.severity" 
+            [size]="'medium'">
+          </app-severity-badge>
+          <span *ngIf="finding.impactScore" class="impact-score" [style.backgroundColor]="getImpactBadgeColor(finding.impactScore)">
+            {{ finding.impactScore }}/10
+          </span>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="vulnerability-body">
+        <p class="description">{{ finding.description }}</p>
+
+        <!-- Location Info -->
+        <div class="location-info">
+          <div class="location-item">
+            <span class="location-icon">📄</span>
+            <div>
+              <div class="location-label">File</div>
+              <div class="location-value">{{ finding.file }}</div>
+            </div>
+          </div>
+          <div class="location-item">
+            <span class="location-icon">📍</span>
+            <div>
+              <div class="location-label">Line</div>
+              <div class="location-value">{{ finding.lineNumber }}</div>
+            </div>
+          </div>
+          <div class="location-item">
+            <span class="location-icon">⏰</span>
+            <div>
+              <div class="location-label">Detected</div>
+              <div class="location-value">{{ finding.detectedAt | date:'short' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Snippet -->
+        <div class="code-snippet" *ngIf="finding.codeSnippet">
+          <div class="snippet-label">🔍 Vulnerable Code:</div>
+          <pre><code>{{ finding.codeSnippet }}</code></pre>
+        </div>
+
+        <!-- Affected Systems -->
+        <div class="affected-systems" *ngIf="finding.affectedSystems && finding.affectedSystems.length > 0">
+          <div class="systems-label">🎯 Affected Systems:</div>
+          <div class="systems-list">
+            <span *ngFor="let system of finding.affectedSystems" class="system-tag">{{ system }}</span>
+          </div>
+        </div>
+
+        <!-- Remediation -->
+        <div class="remediation">
+          <div class="remediation-label">✅ How to Fix:</div>
+          <p>{{ finding.remediation }}</p>
+        </div>
+      </div>
+
+      <!-- Card Footer - Status Actions -->
+      <div class="vulnerability-footer">
+        <div class="status-buttons">
+          <button 
+            class="status-btn open" 
+            [class.active]="finding.status === 'open'"
+            (click)="toggleStatus(finding, 'open')"
+            title="Mark as Open">
+            Open
+          </button>
+          <button 
+            class="status-btn verified" 
+            [class.active]="finding.status === 'verified'"
+            (click)="toggleStatus(finding, 'verified')"
+            title="Mark as Verified">
+            Verified
+          </button>
+          <button 
+            class="status-btn remediated" 
+            [class.active]="finding.status === 'remediated'"
+            (click)="toggleStatus(finding, 'remediated')"
+            title="Mark as Remediated">
+            ✓ Fixed
+          </button>
+          <button 
+            class="status-btn false-positive" 
+            [class.active]="finding.status === 'false-positive'"
+            (click)="toggleStatus(finding, 'false-positive')"
+            title="Mark as False Positive">
+            FP
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
