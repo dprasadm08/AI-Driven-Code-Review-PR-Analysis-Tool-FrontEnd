@@ -1,0 +1,77 @@
+<div class="metrics-container">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading performance metrics...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && metrics.length === 0">
+    <span class="empty-icon">📊</span>
+    <h3>No Metrics Available</h3>
+    <p>Run a performance analysis to collect metrics.</p>
+  </div>
+
+  <!-- Metrics Grid -->
+  <div class="metrics-grid" *ngIf="!isLoading && metrics.length > 0">
+    <div class="metric-card" *ngFor="let metric of metrics" [ngClass]="'status-' + metric.status">
+      <!-- Card Header -->
+      <div class="metric-header">
+        <div class="header-left">
+          <span class="metric-icon">{{ getMetricIcon(metric.type) }}</span>
+          <div class="metric-name-section">
+            <h3 class="metric-name">{{ metric.name }}</h3>
+            <span class="metric-type">{{ metric.type | titlecase }}</span>
+          </div>
+        </div>
+        <span [ngClass]="getStatusBadgeClass(metric.status)" [style.backgroundColor]="getMetricColor(metric.status)">
+          {{ metric.status | uppercase }}
+        </span>
+      </div>
+
+      <!-- Main Value Display -->
+      <div class="metric-value-section">
+        <div class="current-value-display">
+          <span class="current-value">{{ metric.currentValue }}</span>
+          <span class="unit">{{ metric.unit }}</span>
+        </div>
+        <div class="value-info">
+          <div class="info-item">
+            <span class="info-label">Target:</span>
+            <span class="info-value">{{ metric.targetValue }} {{ metric.unit }}</span>
+          </div>
+          <div class="info-item" *ngIf="metric.previousValue">
+            <span class="info-label">Change:</span>
+            <span class="info-value" [style.color]="getTrendColor(metric.trend)">
+              {{ getPercentageChange(metric) | number:'1.1-1' }}% {{ getTrendArrow(metric.trend) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-bar-container">
+          <div class="progress-bar" [style.width]="(metric.currentValue / metric.targetValue * 100) + '%'" 
+               [style.backgroundColor]="getMetricColor(metric.status)"></div>
+        </div>
+        <div class="progress-labels">
+          <span class="label-current">Current: {{ metric.currentValue }}</span>
+          <span class="label-target">Target: {{ metric.targetValue }}</span>
+        </div>
+      </div>
+
+      <!-- Trend Indicator -->
+      <div class="trend-section">
+        <span class="trend-arrow">{{ getTrendArrow(metric.trend) }}</span>
+        <span class="trend-label" [style.color]="getTrendColor(metric.trend)">
+          {{ metric.trend | uppercase }}
+        </span>
+        <span class="timestamp">Updated: {{ metric.timestamp | date:'short' }}</span>
+      </div>
+
+      <!-- Status Indicator -->
+      <div class="status-indicator" [style.backgroundColor]="getMetricColor(metric.status)"></div>
+    </div>
+  </div>
+</div>

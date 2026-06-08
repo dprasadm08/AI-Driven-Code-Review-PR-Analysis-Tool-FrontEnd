@@ -7,6 +7,8 @@ import { AnalysisHistoryComponent } from './analysis-history/analysis-history.co
 import { AnalysisDetailsComponent } from './analysis-details/analysis-details.component';
 import { BugFindingsComponent } from './bug-findings/bug-findings.component';
 import { SecurityFindingsComponent } from './security-findings/security-findings.component';
+import { PerformanceIssuesComponent } from './performance-issues/performance-issues.component';
+import { MetricsCardsComponent } from './metrics-cards/metrics-cards.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
@@ -15,7 +17,9 @@ import { SharedModule } from '../shared/shared.module';
     AnalysisHistoryComponent,
     AnalysisDetailsComponent,
     BugFindingsComponent,
-    SecurityFindingsComponent
+    SecurityFindingsComponent,
+    PerformanceIssuesComponent,
+    MetricsCardsComponent
   ],
   imports: [
     CommonModule,

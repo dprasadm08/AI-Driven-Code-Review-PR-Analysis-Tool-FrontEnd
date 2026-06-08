@@ -72,6 +72,23 @@
     </app-security-findings>
   </div>
 
+  <!-- Performance Metrics Section -->
+  <div *ngIf="!isLoading" class="metrics-section">
+    <h2 class="section-title">📊 Performance Metrics</h2>
+    <app-metrics-cards 
+      [metrics]="performanceMetrics" 
+      [isLoading]="isPerformanceLoading">
+    </app-metrics-cards>
+  </div>
+
+  <!-- Performance Issues Section -->
+  <div *ngIf="!isLoading">
+    <app-performance-issues 
+      [performanceIssues]="performanceIssues" 
+      [isLoading]="isPerformanceLoading">
+    </app-performance-issues>
+  </div>
+
   <div *ngIf="!isLoading && !errorMessage && bugFindings.length === 0 && !isBugFindingsLoading" class="empty-state">
     <div class="empty-icon">🧠</div>
     <h2>No analysis results yet</h2>

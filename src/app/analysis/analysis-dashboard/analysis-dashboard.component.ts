@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { PullRequestService } from '../../core/services/pull-request.service';
 import { BugFinding, SeverityLevel, IssueType } from '../../core/models/analysis.model';
 import { SecurityFinding, SecuritySeverity, SecurityVulnerabilityType } from '../../core/models/security.model';
+import { PerformanceIssue, PerformanceSeverity, MetricType, PerformanceMetric } from '../../core/models/performance.model';
 
 @Component({
   selector: 'app-analysis-dashboard',
@@ -14,9 +15,12 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
   analyses: any[] = [];
   bugFindings: BugFinding[] = [];
   securityFindings: SecurityFinding[] = [];
+  performanceIssues: PerformanceIssue[] = [];
+  performanceMetrics: PerformanceMetric[] = [];
   isLoading = false;
   isBugFindingsLoading = false;
   isSecurityFindingsLoading = false;
+  isPerformanceLoading = false;
   isTriggering = false;
   errorMessage = '';
   successMessage = '';
@@ -30,6 +34,7 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.loadAnalysisShell();
     this.loadMockBugFindings();
     this.loadMockSecurityFindings();
+    this.loadMockPerformanceData();
   }
 
   ngOnDestroy(): void {
@@ -247,28 +252,199 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
       this.isSecurityFindingsLoading = false;
     }, 1200);
   }
-    this.isTriggering = true;
-    this.triggerErrorMessage = '';
-    this.successMessage = '';
 
-    // Placeholder API call - in production, this would trigger analysis for selected PRs
-    // For now, we'll simulate a bulk analysis trigger
-    this.pullRequestService.triggerAnalysis('latest-pr')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (result) => {
-          this.isTriggering = false;
-          this.successMessage = 'Analysis triggered successfully! Processing your code reviews...';
-          // Reload bug findings after analysis
-          setTimeout(() => {
-            this.loadMockBugFindings();
-            this.successMessage = '';
-          }, 2000);
+  loadMockPerformanceData(): void {
+    this.isPerformanceLoading = true;
+
+    // Simulate API delay
+    setTimeout(() => {
+      // Mock performance issues
+      this.performanceIssues = [
+        {
+          id: 'perf-1',
+          title: 'Large Bundle Size',
+          description: 'JavaScript bundle size exceeds recommended threshold, impacting initial load time',
+          severity: PerformanceSeverity.HIGH,
+          metricType: MetricType.BUNDLE_SIZE,
+          file: 'webpack.config.js',
+          currentValue: 2.5,
+          targetValue: 1.5,
+          unit: 'MB',
+          impact: 'High',
+          suggestion: 'Enable code splitting, lazy load routes, and remove unused dependencies. Consider using dynamic imports for large features.',
+          detectedAt: new Date(),
+          status: 'open'
         },
-        error: (error) => {
-          this.isTriggering = false;
-          this.triggerErrorMessage = error.message || 'Failed to trigger analysis. Please try again.';
+        {
+          id: 'perf-2',
+          title: 'Slow API Response Time',
+          description: 'Backend API responds slowly for complex queries, degrading user experience',
+          severity: PerformanceSeverity.CRITICAL,
+          metricType: MetricType.API_RESPONSE,
+          file: 'src/services/data.service.ts',
+          lineNumber: 45,
+          currentValue: 3500,
+          targetValue: 1000,
+          unit: 'ms',
+          impact: 'Critical',
+          suggestion: 'Optimize database queries, add caching layer (Redis), implement pagination, and consider GraphQL for selective field fetching.',
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'perf-3',
+          title: 'High Memory Usage',
+          description: 'Application consuming excessive memory, especially on mobile devices',
+          severity: PerformanceSeverity.HIGH,
+          metricType: MetricType.MEMORY,
+          file: 'src/store/state.ts',
+          lineNumber: 12,
+          currentValue: 450,
+          targetValue: 250,
+          unit: 'MB',
+          impact: 'High',
+          suggestion: 'Review store management, implement virtual scrolling for lists, unsubscribe from observables properly, and optimize images.',
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'perf-4',
+          title: 'Slow Component Render Time',
+          description: 'Dashboard component takes too long to render with large datasets',
+          severity: PerformanceSeverity.MEDIUM,
+          metricType: MetricType.RENDER_TIME,
+          file: 'src/components/dashboard.component.ts',
+          lineNumber: 80,
+          currentValue: 850,
+          targetValue: 300,
+          unit: 'ms',
+          impact: 'Medium',
+          suggestion: 'Use OnPush change detection strategy, implement trackBy in *ngFor, use async pipe with observables.',
+          detectedAt: new Date(),
+          status: 'acknowledged'
+        },
+        {
+          id: 'perf-5',
+          title: 'Missing Image Optimization',
+          description: 'Images not optimized and served at full resolution, consuming bandwidth unnecessarily',
+          severity: PerformanceSeverity.MEDIUM,
+          metricType: MetricType.NETWORK,
+          currentValue: 15,
+          targetValue: 3,
+          unit: 'MB',
+          impact: 'Medium',
+          suggestion: 'Implement lazy loading, use WebP format with fallbacks, serve responsive images with srcset, and compress all images.',
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'perf-6',
+          title: 'Database Query N+1 Problem',
+          description: 'Multiple database queries issued in loops instead of batch operations',
+          severity: PerformanceSeverity.HIGH,
+          metricType: MetricType.DATABASE,
+          file: 'src/repository/user.repository.ts',
+          lineNumber: 120,
+          currentValue: 150,
+          targetValue: 5,
+          unit: 'queries',
+          impact: 'High',
+          suggestion: 'Use JOIN queries or implement eager loading, batch database operations, and add query caching mechanisms.',
+          detectedAt: new Date(),
+          status: 'open'
         }
-      });
+      ];
+
+      // Mock performance metrics
+      this.performanceMetrics = [
+        {
+          id: 'metric-1',
+          name: 'Page Load Time',
+          type: MetricType.LOAD_TIME,
+          currentValue: 3.2,
+          previousValue: 4.1,
+          targetValue: 2.0,
+          unit: 's',
+          threshold: 2.5,
+          status: 'warning',
+          trend: 'improving',
+          timestamp: new Date(),
+          historicalData: []
+        },
+        {
+          id: 'metric-2',
+          name: 'Core Web Vitals - LCP',
+          type: MetricType.LOAD_TIME,
+          currentValue: 2.8,
+          previousValue: 3.1,
+          targetValue: 2.5,
+          unit: 's',
+          threshold: 2.5,
+          status: 'critical',
+          trend: 'stable',
+          timestamp: new Date(),
+          historicalData: []
+        },
+        {
+          id: 'metric-3',
+          name: 'API Throughput',
+          type: MetricType.THROUGHPUT,
+          currentValue: 450,
+          previousValue: 420,
+          targetValue: 500,
+          unit: 'req/s',
+          threshold: 400,
+          status: 'healthy',
+          trend: 'improving',
+          timestamp: new Date(),
+          historicalData: []
+        },
+        {
+          id: 'metric-4',
+          name: 'CPU Usage',
+          type: MetricType.CPU,
+          currentValue: 62,
+          previousValue: 71,
+          targetValue: 50,
+          unit: '%',
+          threshold: 75,
+          status: 'warning',
+          trend: 'improving',
+          timestamp: new Date(),
+          historicalData: []
+        },
+        {
+          id: 'metric-5',
+          name: 'Memory Consumption',
+          type: MetricType.MEMORY,
+          currentValue: 68,
+          previousValue: 75,
+          targetValue: 50,
+          unit: '%',
+          threshold: 80,
+          status: 'warning',
+          trend: 'improving',
+          timestamp: new Date(),
+          historicalData: []
+        },
+        {
+          id: 'metric-6',
+          name: 'Network Bandwidth',
+          type: MetricType.NETWORK,
+          currentValue: 18.5,
+          previousValue: 22.3,
+          targetValue: 10.0,
+          unit: 'Mbps',
+          threshold: 25,
+          status: 'warning',
+          trend: 'improving',
+          timestamp: new Date(),
+          historicalData: []
+        }
+      ];
+
+      this.isPerformanceLoading = false;
+    }, 1300);
   }
-}
+
+  triggerAnalysis(): void {

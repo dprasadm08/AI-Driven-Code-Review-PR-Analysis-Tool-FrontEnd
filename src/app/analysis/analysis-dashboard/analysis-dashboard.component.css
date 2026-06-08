@@ -198,6 +198,19 @@ h1 {
   border: 1px solid #d73a49;
 }
 
+/* Metrics Section */
+.metrics-section {
+  margin-top: 32px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #24292e;
+  margin: 0 0 16px 0;
+}
+
+
 .message-icon {
   font-size: 18px;
 }

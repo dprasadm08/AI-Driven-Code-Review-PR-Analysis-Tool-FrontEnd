@@ -1,0 +1,195 @@
+<div class="performance-issues-container">
+  <!-- Header -->
+  <div class="issues-header">
+    <div class="header-title">
+      <h2>⚡ Performance Issues</h2>
+      <p class="header-subtitle">Detected performance bottlenecks and optimization opportunities</p>
+    </div>
+    <div class="issues-summary">
+      <div class="summary-stat critical">
+        <div class="stat-number">{{ getCriticalCount() }}</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="summary-stat high">
+        <div class="stat-number">{{ getHighCount() }}</div>
+        <div class="stat-label">High</div>
+      </div>
+      <div class="summary-stat medium">
+        <div class="stat-number">{{ (performanceIssues.length - getCriticalCount() - getHighCount()) }}</div>
+        <div class="stat-label">Other</div>
+      </div>
+      <div class="summary-stat impact">
+        <div class="stat-number">{{ getAverageImpact() }}</div>
+        <div class="stat-label">Avg Impact</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Search Issues</label>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Search by title, file, or description..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Severity</label>
+      <select [(ngModel)]="selectedSeverity" (ngModelChange)="onSeverityChange()" class="filter-select">
+        <option value="all">All Severities</option>
+        <option *ngFor="let severity of severityOptions" [value]="severity">
+          {{ getSeverityIcon(severity) }} {{ severity | uppercase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Metric Type</label>
+      <select [(ngModel)]="selectedMetricType" (ngModelChange)="onTypeChange()" class="filter-select">
+        <option value="all">All Types</option>
+        <option *ngFor="let type of metricTypeOptions" [value]="type">
+          {{ getMetricIcon(type) }} {{ type | titlecase }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Analyzing performance metrics...</p>
+  </div>
+
+  <!-- No Results State -->
+  <div class="no-results" *ngIf="!isLoading && filteredIssues.length === 0 && performanceIssues.length === 0">
+    <div class="empty-state">
+      <span class="empty-icon">✅</span>
+      <h3>Excellent Performance</h3>
+      <p>No performance issues detected. Your application is running optimally.</p>
+    </div>
+  </div>
+
+  <!-- Filtered Empty State -->
+  <div class="no-results" *ngIf="!isLoading && filteredIssues.length === 0 && performanceIssues.length > 0">
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <h3>No Issues Match Your Filters</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+  </div>
+
+  <!-- Issues Cards Grid -->
+  <div class="issues-grid" *ngIf="!isLoading && filteredIssues.length > 0">
+    <div class="issue-card" *ngFor="let issue of filteredIssues" [ngClass]="'severity-' + issue.severity">
+      <!-- Card Header -->
+      <div class="issue-header">
+        <div class="title-section">
+          <span class="metric-icon">{{ getMetricIcon(issue.metricType) }}</span>
+          <div class="title-info">
+            <h3 class="issue-title">{{ issue.title }}</h3>
+            <span class="metric-type">{{ issue.metricType | titlecase }}</span>
+          </div>
+        </div>
+        <div class="header-badges">
+          <app-severity-badge 
+            [severity]="issue.severity" 
+            [size]="'medium'">
+          </app-severity-badge>
+          <span class="impact-badge" [style.backgroundColor]="getImpactColor(issue.impact)">
+            {{ issue.impact }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="issue-body">
+        <p class="description">{{ issue.description }}</p>
+
+        <!-- Metric Values -->
+        <div class="metric-values">
+          <div class="value-item">
+            <span class="value-label">Current:</span>
+            <span class="value">{{ issue.currentValue }} {{ issue.unit }}</span>
+          </div>
+          <div class="value-item">
+            <span class="value-label">Target:</span>
+            <span class="value target">{{ issue.targetValue }} {{ issue.unit }}</span>
+          </div>
+          <div class="value-item">
+            <span class="value-label">Difference:</span>
+            <span class="value">{{ (issue.currentValue - issue.targetValue) | number:'1.2-2' }} {{ issue.unit }}</span>
+          </div>
+        </div>
+
+        <!-- File Location -->
+        <div class="location-info" *ngIf="issue.file">
+          <div class="location-item">
+            <span class="location-icon">📄</span>
+            <div>
+              <div class="location-label">File</div>
+              <div class="location-value">{{ issue.file }}</div>
+            </div>
+          </div>
+          <div class="location-item" *ngIf="issue.lineNumber">
+            <span class="location-icon">📍</span>
+            <div>
+              <div class="location-label">Line</div>
+              <div class="location-value">{{ issue.lineNumber }}</div>
+            </div>
+          </div>
+          <div class="location-item">
+            <span class="location-icon">⏰</span>
+            <div>
+              <div class="location-label">Detected</div>
+              <div class="location-value">{{ issue.detectedAt | date:'short' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggestion -->
+        <div class="suggestion">
+          <div class="suggestion-label">💡 Optimization Tip:</div>
+          <p>{{ issue.suggestion }}</p>
+        </div>
+      </div>
+
+      <!-- Card Footer - Status Actions -->
+      <div class="issue-footer">
+        <div class="status-buttons">
+          <button 
+            class="status-btn open" 
+            [class.active]="issue.status === 'open'"
+            (click)="toggleStatus(issue, 'open')"
+            title="Mark as Open">
+            Open
+          </button>
+          <button 
+            class="status-btn acknowledged" 
+            [class.active]="issue.status === 'acknowledged'"
+            (click)="toggleStatus(issue, 'acknowledged')"
+            title="Mark as Acknowledged">
+            Acked
+          </button>
+          <button 
+            class="status-btn optimized" 
+            [class.active]="issue.status === 'optimized'"
+            (click)="toggleStatus(issue, 'optimized')"
+            title="Mark as Optimized">
+            ✓ Fixed
+          </button>
+          <button 
+            class="status-btn monitoring" 
+            [class.active]="issue.status === 'monitoring'"
+            (click)="toggleStatus(issue, 'monitoring')"
+            title="Mark as Monitoring">
+            Monitor
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
