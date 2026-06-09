@@ -9,6 +9,7 @@ import { BugFindingsComponent } from './bug-findings/bug-findings.component';
 import { SecurityFindingsComponent } from './security-findings/security-findings.component';
 import { PerformanceIssuesComponent } from './performance-issues/performance-issues.component';
 import { MetricsCardsComponent } from './metrics-cards/metrics-cards.component';
+import { CodeQualityFindingsComponent } from './code-quality-findings/code-quality-findings.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
@@ -19,7 +20,8 @@ import { SharedModule } from '../shared/shared.module';
     BugFindingsComponent,
     SecurityFindingsComponent,
     PerformanceIssuesComponent,
-    MetricsCardsComponent
+    MetricsCardsComponent,
+    CodeQualityFindingsComponent
   ],
   imports: [
     CommonModule,

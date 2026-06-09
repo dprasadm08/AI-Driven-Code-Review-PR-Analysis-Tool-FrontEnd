@@ -89,6 +89,14 @@
     </app-performance-issues>
   </div>
 
+  <!-- Code Quality Findings Section -->
+  <div *ngIf="!isLoading">
+    <app-code-quality-findings
+      [codeQualityFindings]="codeQualityFindings"
+      [isLoading]="isCodeQualityLoading">
+    </app-code-quality-findings>
+  </div>
+
   <div *ngIf="!isLoading && !errorMessage && bugFindings.length === 0 && !isBugFindingsLoading" class="empty-state">
     <div class="empty-icon">🧠</div>
     <h2>No analysis results yet</h2>

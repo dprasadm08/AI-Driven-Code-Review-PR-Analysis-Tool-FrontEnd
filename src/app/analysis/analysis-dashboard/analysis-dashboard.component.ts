@@ -5,6 +5,7 @@ import { PullRequestService } from '../../core/services/pull-request.service';
 import { BugFinding, SeverityLevel, IssueType } from '../../core/models/analysis.model';
 import { SecurityFinding, SecuritySeverity, SecurityVulnerabilityType } from '../../core/models/security.model';
 import { PerformanceIssue, PerformanceSeverity, MetricType, PerformanceMetric } from '../../core/models/performance.model';
+import { CodeQualityCategory, CodeQualityFinding } from '../../core/models/code-quality.model';
 
 @Component({
   selector: 'app-analysis-dashboard',
@@ -17,10 +18,12 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
   securityFindings: SecurityFinding[] = [];
   performanceIssues: PerformanceIssue[] = [];
   performanceMetrics: PerformanceMetric[] = [];
+  codeQualityFindings: CodeQualityFinding[] = [];
   isLoading = false;
   isBugFindingsLoading = false;
   isSecurityFindingsLoading = false;
   isPerformanceLoading = false;
+  isCodeQualityLoading = false;
   isTriggering = false;
   errorMessage = '';
   successMessage = '';
@@ -35,6 +38,7 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.loadMockBugFindings();
     this.loadMockSecurityFindings();
     this.loadMockPerformanceData();
+    this.loadMockCodeQualityFindings();
   }
 
   ngOnDestroy(): void {
@@ -447,4 +451,123 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     }, 1300);
   }
 
+  loadMockCodeQualityFindings(): void {
+    this.isCodeQualityLoading = true;
+
+    setTimeout(() => {
+      this.codeQualityFindings = [
+        {
+          id: 'cq-1',
+          title: 'Function Exceeds Complexity Threshold',
+          description: 'Method contains too many nested branches, making it difficult to test and maintain.',
+          severity: SeverityLevel.HIGH,
+          category: CodeQualityCategory.COMPLEXITY,
+          file: 'src/app/services/pull-request.service.ts',
+          lineNumber: 118,
+          codeSnippet: 'if (a) { ... } else if (b) { ... } else if (c) { ... }',
+          suggestion: 'Split logic into smaller private methods and use guard clauses to reduce branching.',
+          technicalDebtMinutes: 80,
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'cq-2',
+          title: 'Duplicated Validation Logic',
+          description: 'Validation rules are repeated across multiple components instead of shared utilities.',
+          severity: SeverityLevel.MEDIUM,
+          category: CodeQualityCategory.MAINTAINABILITY,
+          file: 'src/app/repositories/repository-create/repository-create.component.ts',
+          lineNumber: 52,
+          codeSnippet: 'if (!url || url.length < 10) { ... }',
+          suggestion: 'Extract common rules into a shared validator service and reuse across forms.',
+          technicalDebtMinutes: 45,
+          detectedAt: new Date(),
+          status: 'reviewing'
+        },
+        {
+          id: 'cq-3',
+          title: 'Insufficient Unit Test Coverage',
+          description: 'Critical service methods are not covered by unit tests, increasing regression risk.',
+          severity: SeverityLevel.HIGH,
+          category: CodeQualityCategory.TESTING,
+          file: 'src/app/core/services/auth.service.ts',
+          suggestion: 'Add unit tests for login, refresh token, and logout flows with edge cases.',
+          technicalDebtMinutes: 120,
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'cq-4',
+          title: 'Ambiguous Variable Names',
+          description: 'Generic names like data, temp, and obj reduce readability for future contributors.',
+          severity: SeverityLevel.LOW,
+          category: CodeQualityCategory.READABILITY,
+          file: 'src/app/analysis/analysis-history/analysis-history.component.ts',
+          lineNumber: 37,
+          codeSnippet: 'const data = this.items.map((obj) => ...);',
+          suggestion: 'Rename variables to domain-specific names that communicate intent clearly.',
+          technicalDebtMinutes: 20,
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'cq-5',
+          title: 'Direct Subscription Without Cleanup',
+          description: 'Observable subscription is created without teardown logic in a long-lived component.',
+          severity: SeverityLevel.CRITICAL,
+          category: CodeQualityCategory.RELIABILITY,
+          file: 'src/app/analysis/analysis-details/analysis-details.component.ts',
+          lineNumber: 64,
+          codeSnippet: 'this.prService.getDetails().subscribe((result) => { ... });',
+          suggestion: 'Use takeUntil(this.destroy$) or async pipe to prevent memory leaks.',
+          technicalDebtMinutes: 60,
+          detectedAt: new Date(),
+          status: 'open'
+        },
+        {
+          id: 'cq-6',
+          title: 'Missing Error Context in Logging',
+          description: 'Error logs are written without request metadata, making incidents harder to debug.',
+          severity: SeverityLevel.MEDIUM,
+          category: CodeQualityCategory.BEST_PRACTICES,
+          file: 'src/app/core/interceptors/error.interceptor.ts',
+          lineNumber: 29,
+          codeSnippet: 'console.error(error);',
+          suggestion: 'Log structured context such as request URL, correlation ID, and user action.',
+          technicalDebtMinutes: 30,
+          detectedAt: new Date(),
+          status: 'refactored'
+        }
+      ];
+
+      this.isCodeQualityLoading = false;
+    }, 1100);
+  }
+
   triggerAnalysis(): void {
+    this.isTriggering = true;
+    this.triggerErrorMessage = '';
+    this.successMessage = '';
+
+    this.pullRequestService.triggerAnalysis('latest-pr')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isTriggering = false;
+          this.successMessage = 'Analysis triggered successfully! Processing your code reviews...';
+
+          setTimeout(() => {
+            this.loadMockBugFindings();
+            this.loadMockSecurityFindings();
+            this.loadMockPerformanceData();
+            this.loadMockCodeQualityFindings();
+            this.successMessage = '';
+          }, 2000);
+        },
+        error: (error) => {
+          this.isTriggering = false;
+          this.triggerErrorMessage = error.message || 'Failed to trigger analysis. Please try again.';
+        }
+      });
+  }
+}
