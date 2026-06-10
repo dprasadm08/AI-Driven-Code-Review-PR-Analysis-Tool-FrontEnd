@@ -6,6 +6,7 @@ import { BugFinding, SeverityLevel, IssueType } from '../../core/models/analysis
 import { SecurityFinding, SecuritySeverity, SecurityVulnerabilityType } from '../../core/models/security.model';
 import { PerformanceIssue, PerformanceSeverity, MetricType, PerformanceMetric } from '../../core/models/performance.model';
 import { CodeQualityCategory, CodeQualityFinding } from '../../core/models/code-quality.model';
+import { TestCase, TestType, TestPriority, TestRecommendation } from '../../core/models/test-recommendation.model';
 
 @Component({
   selector: 'app-analysis-dashboard',
@@ -19,11 +20,14 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
   performanceIssues: PerformanceIssue[] = [];
   performanceMetrics: PerformanceMetric[] = [];
   codeQualityFindings: CodeQualityFinding[] = [];
+  testCases: TestCase[] = [];
+  testRecommendations: TestRecommendation[] = [];
   isLoading = false;
   isBugFindingsLoading = false;
   isSecurityFindingsLoading = false;
   isPerformanceLoading = false;
   isCodeQualityLoading = false;
+  isTestRecommendationsLoading = false;
   isTriggering = false;
   errorMessage = '';
   successMessage = '';
@@ -39,6 +43,7 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.loadMockSecurityFindings();
     this.loadMockPerformanceData();
     this.loadMockCodeQualityFindings();
+    this.loadMockTestRecommendations();
   }
 
   ngOnDestroy(): void {
@@ -544,6 +549,132 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     }, 1100);
   }
 
+  loadMockTestRecommendations(): void {
+    this.isTestRecommendationsLoading = true;
+
+    setTimeout(() => {
+      this.testCases = [
+        {
+          id: 'test-1',
+          name: 'Auth Service Login Happy Path',
+          description: 'Test successful user login with valid credentials',
+          file: 'src/app/core/services/auth.service.spec.ts',
+          type: TestType.UNIT,
+          priority: TestPriority.CRITICAL,
+          expectedBehavior: 'Should authenticate user and return JWT token with valid credentials',
+          setupCode: 'const mockUser = { email: "test@example.com", password: "secure123" };',
+          assertionCode: 'expect(result.token).toBeDefined(); expect(result.user.id).toBe(mockUser.id);',
+          estimatedMinutes: 15,
+          relatedIssueIds: ['sec-1', 'cq-5'],
+          status: 'suggested'
+        },
+        {
+          id: 'test-2',
+          name: 'Auth Service Invalid Credentials',
+          description: 'Test login failure with incorrect password',
+          file: 'src/app/core/services/auth.service.spec.ts',
+          type: TestType.UNIT,
+          priority: TestPriority.HIGH,
+          expectedBehavior: 'Should throw authentication error and not create session',
+          setupCode: 'const mockUser = { email: "test@example.com", password: "wrong" };',
+          assertionCode: 'expect(() => authService.login(mockUser)).toThrowError("Invalid credentials");',
+          estimatedMinutes: 10,
+          relatedIssueIds: ['sec-1'],
+          status: 'suggested'
+        },
+        {
+          id: 'test-3',
+          name: 'Token Refresh Flow Integration',
+          description: 'Test automatic token refresh when expired',
+          file: 'src/app/core/interceptors/auth.interceptor.spec.ts',
+          type: TestType.INTEGRATION,
+          priority: TestPriority.CRITICAL,
+          expectedBehavior: 'Should intercept 401 response and refresh token automatically',
+          setupCode: 'const expiredToken = generateExpiredJWT(); httpClient.get(url).subscribe();',
+          assertionCode: 'expect(refreshTokenCalls).toBe(1); expect(retryCount).toBe(1);',
+          estimatedMinutes: 25,
+          relatedIssueIds: [],
+          status: 'suggested'
+        },
+        {
+          id: 'test-4',
+          name: 'Performance: Bundle Size Reduction',
+          description: 'Test code splitting and lazy loading effectiveness',
+          file: 'src/app/analysis/test-setup.ts',
+          type: TestType.PERFORMANCE,
+          priority: TestPriority.HIGH,
+          expectedBehavior: 'Main bundle should be under 1.5MB and lazy modules under 500KB',
+          setupCode: 'const bundleSize = measureBundleSize();',
+          assertionCode: 'expect(bundleSize.main).toBeLessThan(1500); expect(bundleSize.lazy).toBeLessThan(500);',
+          estimatedMinutes: 30,
+          relatedIssueIds: ['perf-1'],
+          status: 'suggested'
+        },
+        {
+          id: 'test-5',
+          name: 'XSS Vulnerability Prevention',
+          description: 'Verify user input sanitization in comment component',
+          file: 'src/app/components/comment.component.spec.ts',
+          type: TestType.SECURITY,
+          priority: TestPriority.CRITICAL,
+          expectedBehavior: 'HTML and script tags should be escaped or removed from rendered output',
+          setupCode: 'const maliciousInput = "<script>alert(\'xss\')</script>";',
+          assertionCode: 'expect(renderedElement.textContent).not.toContain("<script>"); expect(sanitizationCalls).toBe(1);',
+          estimatedMinutes: 20,
+          relatedIssueIds: ['sec-2'],
+          status: 'in-progress'
+        },
+        {
+          id: 'test-6',
+          name: 'Analysis Dashboard Rendering',
+          description: 'Test end-to-end dashboard rendering with large dataset',
+          file: 'src/app/analysis/analysis-dashboard/analysis-dashboard.e2e.ts',
+          type: TestType.E2E,
+          priority: TestPriority.MEDIUM,
+          expectedBehavior: 'Dashboard should render all sections within 3 seconds with 1000 items',
+          setupCode: 'loadFixture("dashboard-1000-items.json"); navigateTo("/analysis");',
+          assertionCode: 'expect(renderTime).toBeLessThan(3000); expect(visibleElements).toBe(allElements);',
+          estimatedMinutes: 45,
+          relatedIssueIds: ['perf-4'],
+          status: 'suggested'
+        }
+      ];
+
+      this.testRecommendations = [
+        {
+          id: 'rec-1',
+          title: 'Core Module Coverage',
+          description: 'Authentication and HTTP interceptor critical path coverage',
+          testCases: this.testCases.filter((tc) => ['test-1', 'test-2', 'test-3'].includes(tc.id)),
+          coverage: 72,
+          totalLines: 245,
+          coveredLines: 176,
+          criticalGaps: 3,
+          priority: TestPriority.CRITICAL,
+          estimatedHours: 2.5,
+          createdAt: new Date(),
+          lastUpdated: new Date()
+        },
+        {
+          id: 'rec-2',
+          title: 'Security Vulnerability Prevention',
+          description: 'Security-focused test recommendations from PR analysis',
+          testCases: this.testCases.filter((tc) => tc.type === TestType.SECURITY),
+          coverage: 65,
+          totalLines: 180,
+          coveredLines: 117,
+          criticalGaps: 2,
+          priority: TestPriority.CRITICAL,
+          estimatedHours: 1.5,
+          createdAt: new Date(),
+          lastUpdated: new Date()
+        }
+      ];
+
+      this.isTestRecommendationsLoading = false;
+    }, 1200);
+  }
+
   triggerAnalysis(): void {
     this.isTriggering = true;
     this.triggerErrorMessage = '';
@@ -561,6 +692,7 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
             this.loadMockSecurityFindings();
             this.loadMockPerformanceData();
             this.loadMockCodeQualityFindings();
+            this.loadMockTestRecommendations();
             this.successMessage = '';
           }, 2000);
         },

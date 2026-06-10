@@ -1,0 +1,200 @@
+<div class="test-recommendations-container">
+  <div class="recommendations-header">
+    <div class="header-title">
+      <h2>🧪 Test Recommendations</h2>
+      <p class="header-subtitle">Suggested test cases to improve code coverage and reliability</p>
+    </div>
+    <div class="recommendations-summary">
+      <div class="summary-stat total">
+        <div class="stat-number">{{ testCases.length }}</div>
+        <div class="stat-label">Tests</div>
+      </div>
+      <div class="summary-stat critical">
+        <div class="stat-number">{{ getCriticalCount() }}</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="summary-stat implemented">
+        <div class="stat-number">{{ getImplementedCount() }}</div>
+        <div class="stat-label">Implemented</div>
+      </div>
+      <div class="summary-stat coverage">
+        <div class="stat-number">{{ getAverageCoverage() }}%</div>
+        <div class="stat-label">Avg Coverage</div>
+      </div>
+      <div class="summary-stat hours">
+        <div class="stat-number">{{ getTotalEstimatedHours() }}h</div>
+        <div class="stat-label">Est. Hours</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Search Tests</label>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name, file, or description..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearchChange()">
+    </div>
+
+    <div class="filter-group">
+      <label>Test Type</label>
+      <select [(ngModel)]="selectedType" (ngModelChange)="onTypeChange()" class="filter-select">
+        <option value="all">All Types</option>
+        <option *ngFor="let type of typeOptions" [value]="type">
+          {{ getTestTypeIcon(type) }} {{ type | uppercase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Priority</label>
+      <select [(ngModel)]="selectedPriority" (ngModelChange)="onPriorityChange()" class="filter-select">
+        <option value="all">All Priorities</option>
+        <option *ngFor="let priority of priorityOptions" [value]="priority">
+          {{ getPriorityIcon(priority) }} {{ priority | titlecase }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Status</label>
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()" class="filter-select">
+        <option value="all">All Statuses</option>
+        <option *ngFor="let status of statusOptions" [value]="status">
+          {{ getStatusIcon(status) }} {{ status | titlecase }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Generating test recommendations...</p>
+  </div>
+
+  <div class="no-results" *ngIf="!isLoading && filteredTestCases.length === 0 && testCases.length === 0">
+    <div class="empty-state">
+      <span class="empty-icon">✅</span>
+      <h3>No Test Recommendations</h3>
+      <p>Run analysis to get test coverage recommendations for your code.</p>
+    </div>
+  </div>
+
+  <div class="no-results" *ngIf="!isLoading && filteredTestCases.length === 0 && testCases.length > 0">
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <h3>No Tests Match Your Filters</h3>
+      <p>Try adjusting your search or filter criteria.</p>
+    </div>
+  </div>
+
+  <div class="test-cases-grid" *ngIf="!isLoading && filteredTestCases.length > 0">
+    <div class="test-case-card" *ngFor="let testCase of filteredTestCases" [ngClass]="'priority-' + testCase.priority">
+      <div class="test-header">
+        <div class="title-section">
+          <span class="type-icon">{{ getTestTypeIcon(testCase.type) }}</span>
+          <div class="title-info">
+            <h3 class="test-name">{{ testCase.name }}</h3>
+            <div class="test-metadata">
+              <span class="meta-tag type-tag">{{ testCase.type | uppercase }}</span>
+              <span class="meta-tag">Est: {{ testCase.estimatedMinutes }}m</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-badges">
+          <app-severity-badge 
+            [severity]="testCase.priority" 
+            [size]="'small'">
+          </app-severity-badge>
+          <span 
+            class="status-badge" 
+            [style.backgroundColor]="getStatusColor(testCase.status)">
+            {{ getStatusIcon(testCase.status) }} {{ testCase.status | titlecase }}
+          </span>
+        </div>
+      </div>
+
+      <div class="test-body">
+        <p class="description">{{ testCase.description }}</p>
+
+        <div class="location-info">
+          <div class="location-item">
+            <span class="location-label">File</span>
+            <span class="location-value">{{ testCase.file }}</span>
+          </div>
+          <div class="location-item" *ngIf="testCase.lineNumber">
+            <span class="location-label">Line</span>
+            <span class="location-value">{{ testCase.lineNumber }}</span>
+          </div>
+        </div>
+
+        <div class="expected-behavior">
+          <div class="behavior-label">Expected Behavior</div>
+          <p>{{ testCase.expectedBehavior }}</p>
+        </div>
+
+        <div class="code-section" *ngIf="testCase.setupCode">
+          <div class="code-label">Setup Code</div>
+          <pre><code>{{ testCase.setupCode }}</code></pre>
+        </div>
+
+        <div class="code-section" *ngIf="testCase.assertionCode">
+          <div class="code-label">Assertion</div>
+          <pre><code>{{ testCase.assertionCode }}</code></pre>
+        </div>
+
+        <div class="related-issues" *ngIf="testCase.relatedIssueIds && testCase.relatedIssueIds.length > 0">
+          <div class="related-label">Related Issues</div>
+          <div class="issue-tags">
+            <span class="issue-tag" *ngFor="let issueId of testCase.relatedIssueIds">
+              {{ issueId }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="test-footer">
+        <div class="status-buttons">
+          <button
+            class="status-btn suggested"
+            [class.active]="testCase.status === 'suggested'"
+            (click)="toggleStatus(testCase, 'suggested')"
+            title="Mark as Suggested">
+            Suggest
+          </button>
+          <button
+            class="status-btn in-progress"
+            [class.active]="testCase.status === 'in-progress'"
+            (click)="toggleStatus(testCase, 'in-progress')"
+            title="Mark as In Progress">
+            WIP
+          </button>
+          <button
+            class="status-btn implemented"
+            [class.active]="testCase.status === 'implemented'"
+            (click)="toggleStatus(testCase, 'implemented')"
+            title="Mark as Implemented">
+            Impl
+          </button>
+          <button
+            class="status-btn passed"
+            [class.active]="testCase.status === 'passed'"
+            (click)="toggleStatus(testCase, 'passed')"
+            title="Mark as Passed">
+            ✓ Pass
+          </button>
+          <button
+            class="status-btn skipped"
+            [class.active]="testCase.status === 'skipped'"
+            (click)="toggleStatus(testCase, 'skipped')"
+            title="Mark as Skipped">
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -97,6 +97,15 @@
     </app-code-quality-findings>
   </div>
 
+  <!-- Test Recommendations Section -->
+  <div *ngIf="!isLoading">
+    <app-test-recommendations
+      [testCases]="testCases"
+      [testRecommendations]="testRecommendations"
+      [isLoading]="isTestRecommendationsLoading">
+    </app-test-recommendations>
+  </div>
+
   <div *ngIf="!isLoading && !errorMessage && bugFindings.length === 0 && !isBugFindingsLoading" class="empty-state">
     <div class="empty-icon">🧠</div>
     <h2>No analysis results yet</h2>
