@@ -2,11 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { PullRequestService } from '../../core/services/pull-request.service';
+import { AnalysisService } from '../../core/services/analysis.service';
 import { BugFinding, SeverityLevel, IssueType } from '../../core/models/analysis.model';
 import { SecurityFinding, SecuritySeverity, SecurityVulnerabilityType } from '../../core/models/security.model';
 import { PerformanceIssue, PerformanceSeverity, MetricType, PerformanceMetric } from '../../core/models/performance.model';
 import { CodeQualityCategory, CodeQualityFinding } from '../../core/models/code-quality.model';
 import { TestCase, TestType, TestPriority, TestRecommendation } from '../../core/models/test-recommendation.model';
+import { CombinedAnalysisResponse, AnalysisTriggerRequest } from '../../core/models/combined-analysis.model';
 
 @Component({
   selector: 'app-analysis-dashboard',
@@ -32,13 +34,143 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
   triggerErrorMessage = '';
+  currentAnalysis: CombinedAnalysisResponse | null = null;
+  analysisId: string = '';
+  repositoryId: string = '';
+  pullRequestId: string = '';
   
   private destroy$ = new Subject<void>();
 
-  constructor(private pullRequestService: PullRequestService) {}
+  constructor(
+    private pullRequestService: PullRequestService,
+    private analysisService: AnalysisService
+  ) {}
 
   ngOnInit(): void {
     this.loadAnalysisShell();
+    this.initializeDashboard();
+    this.subscribeToAnalysisState();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Initialize the dashboard by loading analysis data
+   */
+  private initializeDashboard(): void {
+    // Try to get analysis ID from route params or URL
+    this.extractAnalysisParameters();
+    
+    if (this.analysisId) {
+      // Load existing analysis
+      this.loadAnalysisById(this.analysisId);
+    } else {
+      // Load mock data as fallback
+      this.loadMockData();
+    }
+  }
+
+  /**
+   * Extract analysis parameters from route or other sources
+   */
+  private extractAnalysisParameters(): void {
+    // This would typically come from ActivatedRoute params
+    // For now, using fallback values
+    const params = this.getUrlParams();
+    this.analysisId = params['analysisId'] || '';
+    this.repositoryId = params['repositoryId'] || 'default-repo';
+    this.pullRequestId = params['pullRequestId'] || 'latest-pr';
+  }
+
+  /**
+   * Get URL parameters
+   */
+  private getUrlParams(): any {
+    const params: any = {};
+    const queryString = window.location.search.substring(1);
+    const regex = /([^&=]+)=([^&]*)/g;
+    let m;
+    while ((m = regex.exec(queryString))) {
+      params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+    }
+    return params;
+  }
+
+  /**
+   * Subscribe to analysis service state changes
+   */
+  private subscribeToAnalysisState(): void {
+    this.analysisService
+      .getCurrentAnalysis()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((analysis) => {
+        if (analysis) {
+          this.currentAnalysis = analysis;
+          this.populateAnalysisData(analysis);
+        }
+      });
+
+    this.analysisService
+      .getIsAnalyzing()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isAnalyzing) => {
+        this.isTriggering = isAnalyzing;
+      });
+  }
+
+  /**
+   * Load analysis by ID from API
+   */
+  private loadAnalysisById(analysisId: string): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.analysisService
+      .getAnalysis(analysisId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (analysis) => {
+          this.currentAnalysis = analysis;
+          this.populateAnalysisData(analysis);
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Failed to load analysis:', error);
+          this.errorMessage = `Failed to load analysis: ${error.message}`;
+          this.isLoading = false;
+          // Fallback to mock data
+          this.loadMockData();
+        }
+      });
+  }
+
+  /**
+   * Populate analysis data from API response
+   */
+  private populateAnalysisData(analysis: CombinedAnalysisResponse): void {
+    if (analysis.findings) {
+      this.bugFindings = analysis.findings.bugs || [];
+      this.securityFindings = analysis.findings.security || [];
+      this.performanceIssues = analysis.findings.performance?.issues || [];
+      this.performanceMetrics = analysis.findings.performance?.metrics || [];
+      this.codeQualityFindings = analysis.findings.codeQuality || [];
+      this.testCases = analysis.findings.tests?.cases || [];
+      this.testRecommendations = analysis.findings.tests?.recommendations || [];
+    }
+
+    if (analysis.status === 'completed') {
+      this.successMessage = `Analysis completed at ${new Date(analysis.completedAt!).toLocaleString()}`;
+    } else if (analysis.status === 'failed') {
+      this.errorMessage = `Analysis failed: ${analysis.errorMessage || 'Unknown error'}`;
+    }
+  }
+
+  /**
+   * Load mock data as fallback
+   */
+  private loadMockData(): void {
     this.loadMockBugFindings();
     this.loadMockSecurityFindings();
     this.loadMockPerformanceData();
@@ -46,9 +178,11 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.loadMockTestRecommendations();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  loadAnalysisShell(): void {
+    this.isLoading = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.analyses = [];
   }
 
   loadAnalysisShell(): void {
@@ -675,30 +809,68 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     }, 1200);
   }
 
+  /**
+   * Trigger a new analysis on the backend
+   */
   triggerAnalysis(): void {
     this.isTriggering = true;
     this.triggerErrorMessage = '';
     this.successMessage = '';
+    this.analysisService.setIsAnalyzing(true);
 
-    this.pullRequestService.triggerAnalysis('latest-pr')
+    const request: AnalysisTriggerRequest = {
+      repositoryId: this.repositoryId,
+      pullRequestId: this.pullRequestId || undefined,
+      analysisType: 'full',
+      priority: 'high'
+    };
+
+    this.analysisService
+      .triggerAnalysis(request)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.isTriggering = false;
-          this.successMessage = 'Analysis triggered successfully! Processing your code reviews...';
-
-          setTimeout(() => {
-            this.loadMockBugFindings();
-            this.loadMockSecurityFindings();
-            this.loadMockPerformanceData();
-            this.loadMockCodeQualityFindings();
-            this.loadMockTestRecommendations();
-            this.successMessage = '';
-          }, 2000);
+        next: (response) => {
+          this.successMessage = `Analysis triggered successfully! Estimated duration: ${response.estimatedDuration}s`;
+          this.analysisId = response.analysisId;
+          this.pollAnalysisCompletion(response.analysisId);
         },
         error: (error) => {
           this.isTriggering = false;
+          this.analysisService.setIsAnalyzing(false);
           this.triggerErrorMessage = error.message || 'Failed to trigger analysis. Please try again.';
+          console.error('Analysis trigger error:', error);
+          // Reload mock data as fallback
+          setTimeout(() => {
+            this.loadMockData();
+          }, 1000);
+        }
+      });
+  }
+
+  /**
+   * Poll for analysis completion
+   */
+  private pollAnalysisCompletion(analysisId: string): void {
+    this.analysisService
+      .pollAnalysisStatus(analysisId, 60, 2000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (analysis) => {
+          this.currentAnalysis = analysis;
+          this.populateAnalysisData(analysis);
+          this.isTriggering = false;
+          this.successMessage = `Analysis completed successfully!`;
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 5000);
+        },
+        error: (error) => {
+          this.isTriggering = false;
+          this.analysisService.setIsAnalyzing(false);
+          this.triggerErrorMessage = `Analysis polling error: ${error.message}`;
+          console.error('Analysis polling error:', error);
+          // Reload mock data as fallback
+          this.loadMockData();
         }
       });
   }
