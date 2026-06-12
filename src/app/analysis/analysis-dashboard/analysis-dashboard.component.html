@@ -1,12 +1,14 @@
 <div class="container">
   <!-- Messages -->
-  <div *ngIf="successMessage" class="message-box success-message">
+  <div *ngIf="successMessage" class="message-box success-message" role="status" aria-live="polite">
     <span class="message-icon">✅</span>
-    {{ successMessage }}
+    <span class="message-text">{{ successMessage }}</span>
+    <button type="button" class="alert-close" (click)="dismissSuccessMessage()" aria-label="Dismiss success message">×</button>
   </div>
-  <div *ngIf="triggerErrorMessage" class="message-box error-message">
+  <div *ngIf="triggerErrorMessage" class="message-box error-message" role="alert">
     <span class="message-icon">❌</span>
-    {{ triggerErrorMessage }}
+    <span class="message-text">{{ triggerErrorMessage }}</span>
+    <button type="button" class="alert-close" (click)="dismissErrorMessage()" aria-label="Dismiss error message">×</button>
   </div>
 
   <div class="header-row">
@@ -19,10 +21,10 @@
         class="btn btn-accent" 
         (click)="triggerAnalysis()" 
         [disabled]="isTriggering"
-        title="Trigger AI analysis for pull requests">
+        title="Trigger AI analysis for pull requests manually">
         <span *ngIf="!isTriggering" class="btn-icon">⚡</span>
         <span *ngIf="isTriggering" class="spinner-tiny"></span>
-        {{ isTriggering ? 'Analyzing...' : 'Trigger Analysis' }}
+        {{ isTriggering ? 'Analyzing...' : 'Analyze Now' }}
       </button>
       <a routerLink="../history" class="btn btn-primary">View Past Analysis</a>
     </div>

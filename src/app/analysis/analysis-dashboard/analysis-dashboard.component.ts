@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { PullRequestService } from '../../core/services/pull-request.service';
 import { AnalysisService } from '../../core/services/analysis.service';
 import { BugFinding, SeverityLevel, IssueType } from '../../core/models/analysis.model';
 import { SecurityFinding, SecuritySeverity, SecurityVulnerabilityType } from '../../core/models/security.model';
@@ -42,7 +41,6 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private pullRequestService: PullRequestService,
     private analysisService: AnalysisService
   ) {}
 
@@ -182,14 +180,16 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.isLoading = false;
     this.errorMessage = '';
     this.successMessage = '';
+    this.triggerErrorMessage = '';
     this.analyses = [];
   }
 
-  loadAnalysisShell(): void {
-    this.isLoading = false;
-    this.errorMessage = '';
+  dismissSuccessMessage(): void {
     this.successMessage = '';
-    this.analyses = [];
+  }
+
+  dismissErrorMessage(): void {
+    this.triggerErrorMessage = '';
   }
 
   loadMockBugFindings(): void {
