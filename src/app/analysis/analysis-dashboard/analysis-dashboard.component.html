@@ -15,6 +15,13 @@
     <div>
       <h1>Analysis Dashboard</h1>
       <p class="subtitle">Your AI review insights and analysis summaries will appear here once analysis data is available.</p>
+      <div class="status-indicators">
+        <span class="status-chip status-auto-enabled">Auto-Analysis Enabled</span>
+        <span class="status-chip" [ngClass]="getAutoAnalysisStatusClass()">
+          {{ getAutoAnalysisStatusIcon() }} {{ getAutoAnalysisStatusLabel() }}
+        </span>
+        <span class="status-meta">{{ getLastAutoAnalysisText() }}</span>
+      </div>
     </div>
     <div class="header-actions">
       <button 

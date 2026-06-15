@@ -192,6 +192,75 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
     this.triggerErrorMessage = '';
   }
 
+  getAutoAnalysisStatusLabel(): string {
+    if (this.isTriggering) {
+      return 'In Progress';
+    }
+
+    const status = this.currentAnalysis?.status;
+    if (status === 'completed') {
+      return 'Healthy';
+    }
+    if (status === 'failed') {
+      return 'Action Needed';
+    }
+    if (status === 'pending' || status === 'in-progress') {
+      return 'In Progress';
+    }
+
+    return 'Idle';
+  }
+
+  getAutoAnalysisStatusClass(): string {
+    if (this.isTriggering) {
+      return 'status-running';
+    }
+
+    const status = this.currentAnalysis?.status;
+    if (status === 'completed') {
+      return 'status-healthy';
+    }
+    if (status === 'failed') {
+      return 'status-failed';
+    }
+    if (status === 'pending' || status === 'in-progress') {
+      return 'status-running';
+    }
+
+    return 'status-idle';
+  }
+
+  getAutoAnalysisStatusIcon(): string {
+    if (this.isTriggering) {
+      return '⏳';
+    }
+
+    const status = this.currentAnalysis?.status;
+    if (status === 'completed') {
+      return '✅';
+    }
+    if (status === 'failed') {
+      return '⚠️';
+    }
+    if (status === 'pending' || status === 'in-progress') {
+      return '⏳';
+    }
+
+    return '🟡';
+  }
+
+  getLastAutoAnalysisText(): string {
+    const completedAt = this.currentAnalysis?.completedAt;
+    const analyzedAt = this.currentAnalysis?.analyzedAt;
+    const timestamp = completedAt || analyzedAt;
+
+    if (!timestamp) {
+      return 'Last run: Not available yet';
+    }
+
+    return `Last run: ${new Date(timestamp).toLocaleString()}`;
+  }
+
   loadMockBugFindings(): void {
     this.isBugFindingsLoading = true;
     
