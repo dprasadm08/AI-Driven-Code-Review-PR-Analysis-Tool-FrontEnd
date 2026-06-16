@@ -1,8 +1,149 @@
 <div class="container">
-  <h1>Analysis History</h1>
-  <p>Past code review analyses</p>
-  
-  <div class="card">
-    <p>Analysis history will be displayed here</p>
+  <!-- Header -->
+  <div class="header-row">
+    <div>
+      <h1>Analysis History</h1>
+      <p class="subtitle">Browse past code review analyses across all repositories and pull requests.</p>
+    </div>
+    <a routerLink=".." class="btn btn-outline">← Back to Dashboard</a>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Search by PR, branch or repository..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        class="search-input"
+      />
+    </div>
+
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" class="filter-select">
+      <option value="all">All Statuses</option>
+      <option *ngFor="let s of statusOptions.slice(1)" [value]="s">{{ s | titlecase }}</option>
+    </select>
+
+    <select [(ngModel)]="filterRisk" (ngModelChange)="applyFilters()" class="filter-select">
+      <option value="all">All Risk Levels</option>
+      <option *ngFor="let r of riskOptions.slice(1)" [value]="r">{{ r | titlecase }}</option>
+    </select>
+
+    <span class="result-count">{{ filteredHistory.length }} result{{ filteredHistory.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-shell">
+    <div class="spinner"></div>
+    <p>Loading analysis history...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-shell">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th (click)="sortBy('pullRequestId')" class="sortable">
+            Pull Request <span class="sort-icon">{{ getSortIcon('pullRequestId') }}</span>
+          </th>
+          <th (click)="sortBy('branch')" class="sortable">
+            Branch <span class="sort-icon">{{ getSortIcon('branch') }}</span>
+          </th>
+          <th (click)="sortBy('status')" class="sortable">
+            Status <span class="sort-icon">{{ getSortIcon('status') }}</span>
+          </th>
+          <th (click)="sortBy('riskLevel')" class="sortable">
+            Risk <span class="sort-icon">{{ getSortIcon('riskLevel') }}</span>
+          </th>
+          <th (click)="sortBy('totalIssues')" class="sortable">
+            Issues <span class="sort-icon">{{ getSortIcon('totalIssues') }}</span>
+          </th>
+          <th>Score</th>
+          <th>Breakdown</th>
+          <th (click)="sortBy('analyzedAt')" class="sortable">
+            Analyzed <span class="sort-icon">{{ getSortIcon('analyzedAt') }}</span>
+          </th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="pagedHistory.length === 0">
+          <td colspan="10" class="empty-row">No analyses match your filters.</td>
+        </tr>
+        <tr *ngFor="let item of pagedHistory" class="history-row">
+          <td>
+            <span class="pr-id">{{ item.pullRequestId }}</span>
+            <span class="repo-name">{{ item.repositoryId }}</span>
+          </td>
+          <td>
+            <span class="branch-tag" *ngIf="item.branch">🌿 {{ item.branch }}</span>
+            <span *ngIf="!item.branch" class="muted">—</span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+              {{ getStatusIcon(item.status) }} {{ item.status | titlecase }}
+            </span>
+          </td>
+          <td>
+            <span class="risk-badge" [ngClass]="getRiskClass(item.summary?.riskLevel)">
+              {{ item.summary?.riskLevel | titlecase }}
+            </span>
+          </td>
+          <td>
+            <span class="issue-count" [class.zero]="item.totalIssues === 0">
+              {{ item.totalIssues }}
+            </span>
+            <span *ngIf="item.summary?.criticalCount > 0" class="crit-pill">
+              {{ item.summary?.criticalCount }} critical
+            </span>
+          </td>
+          <td>
+            <div class="score-wrap">
+              <span class="score-value" [ngClass]="getScoreClass(getScore(item))">
+                {{ getScore(item) }}
+              </span>
+              <div class="score-bar">
+                <div class="score-fill" [ngClass]="getScoreClass(getScore(item))" [style.width.%]="getScore(item)"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="breakdown" *ngIf="item.status === 'completed'">
+              <span class="bd-chip bd-bug" title="Bugs">🐛 {{ item.summary?.issueBreakdown?.bugs }}</span>
+              <span class="bd-chip bd-sec" title="Security">🔒 {{ item.summary?.issueBreakdown?.security }}</span>
+              <span class="bd-chip bd-perf" title="Performance">⚡ {{ item.summary?.issueBreakdown?.performance }}</span>
+              <span class="bd-chip bd-cq" title="Code Quality">📐 {{ item.summary?.issueBreakdown?.codeQuality }}</span>
+            </div>
+            <span *ngIf="item.status !== 'completed'" class="muted">—</span>
+          </td>
+          <td class="date-cell">{{ item.analyzedAt | date:'MMM d, y HH:mm' }}</td>
+          <td class="duration-cell">{{ getDuration(item) }}</td>
+          <td>
+            <a [routerLink]="['..', item.id]" class="btn-view">View Details</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!isLoading && totalPages > 1" class="pagination">
+    <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">‹ Prev</button>
+    <button
+      *ngFor="let p of pageNumbers"
+      class="page-btn"
+      [class.active]="p === currentPage"
+      (click)="currentPage = p">
+      {{ p }}
+    </button>
+    <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">Next ›</button>
   </div>
 </div>
