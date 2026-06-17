@@ -1,8 +1,378 @@
 <div class="container">
-  <h1>Analysis Details</h1>
-  <p>Viewing analysis #{{ analysisId }}</p>
-  
-  <div class="card">
-    <p>Analysis details will be displayed here</p>
+  <!-- Header -->
+  <div class="header-row">
+    <div>
+      <a routerLink="../history" class="back-btn">← Back to History</a>
+      <h1>Analysis Details</h1>
+      <p class="meta">{{ analysis?.pullRequestId }} • {{ analysis?.analyzedAt | date:'MMM d, y HH:mm' }}</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-shell">
+    <div class="spinner"></div>
+    <p>Loading analysis details...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-shell">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div *ngIf="!isLoading && analysis" class="summary-grid">
+    <div class="summary-card score-card" [ngClass]="getScoreClass(analysis.summary?.overallScore || 0)">
+      <div class="score-label">Overall Score</div>
+      <div class="score-value">{{ analysis.summary?.overallScore || 0 }}</div>
+      <div class="score-bar">
+        <div class="score-fill" [style.width.%]="analysis.summary?.overallScore || 0"></div>
+      </div>
+    </div>
+
+    <div class="summary-card risk-card" [ngClass]="getRiskClass(analysis.summary?.riskLevel || 'safe')">
+      <div class="risk-label">Risk Level</div>
+      <div class="risk-value">{{ getRiskIcon(analysis.summary?.riskLevel || 'safe') }} {{ analysis.summary?.riskLevel | titlecase }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="stat-label">Total Issues</div>
+      <div class="stat-value">{{ analysis.summary?.totalIssues || 0 }}</div>
+      <div class="stat-breakdown">
+        <span *ngIf="analysis.summary?.criticalCount! > 0" class="critical">🔴 {{ analysis.summary?.criticalCount }}</span>
+        <span *ngIf="analysis.summary?.highCount! > 0" class="high">🟠 {{ analysis.summary?.highCount }}</span>
+        <span *ngIf="analysis.summary?.mediumCount! > 0" class="medium">🟡 {{ analysis.summary?.mediumCount }}</span>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="stat-label">Est. Fix Time</div>
+      <div class="stat-value">{{ (analysis.summary?.estimatedFixTime || 0) / 60 | number:'1.0-0' }}h</div>
+      <div class="stat-small">Technical Debt: {{ (analysis.summary?.technicalDebt || 0) / 60 | number:'1.0-0' }}h</div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div *ngIf="!isLoading && analysis?.recommendations && analysis.recommendations.length > 0" class="recommendations-box">
+    <h3>Key Recommendations</h3>
+    <ul>
+      <li *ngFor="let rec of analysis.recommendations">{{ rec }}</li>
+    </ul>
+  </div>
+
+  <!-- Issue Breakdown Sections -->
+  <div *ngIf="!isLoading && analysis">
+    <!-- Bugs Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('bugs')">
+        <span class="toggle-icon">{{ expandedSections['bugs'] ? '▼' : '▶' }}</span>
+        <h2>🐛 Bug Findings ({{ getFilteredBugs().length }})</h2>
+      </div>
+
+      <div *ngIf="expandedSections['bugs']" class="section-content">
+        <div class="filter-bar">
+          <select [(ngModel)]="filters.bugs.severity" class="filter-select" (ngModelChange)="$event">
+            <option value="all">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div *ngIf="getFilteredBugs().length === 0" class="empty-section">No bugs found</div>
+
+        <div *ngFor="let bug of getFilteredBugs()" class="issue-card" [class.expanded]="isIssueExpanded(bug.id)">
+          <div class="issue-header" (click)="toggleIssue(bug.id)">
+            <span class="severity-badge" [ngClass]="getSeverityClass(bug.severity)">
+              {{ getSeverityIcon(bug.severity) }} {{ bug.severity }}
+            </span>
+            <span class="issue-title">{{ bug.title }}</span>
+            <span class="toggle-arrow">{{ isIssueExpanded(bug.id) ? '▼' : '▶' }}</span>
+          </div>
+
+          <div *ngIf="isIssueExpanded(bug.id)" class="issue-body">
+            <div class="issue-meta">
+              <span class="file-location">📄 {{ bug.file }}:{{ bug.lineNumber }}</span>
+              <span class="issue-type">{{ bug.type }}</span>
+            </div>
+
+            <div class="description">
+              <strong>Description:</strong>
+              <p>{{ bug.description }}</p>
+            </div>
+
+            <div class="code-snippet">
+              <strong>Code:</strong>
+              <pre><code>{{ bug.codeSnippet }}</code></pre>
+            </div>
+
+            <div class="suggestion">
+              <strong>Fix Suggestion:</strong>
+              <p>{{ bug.suggestion }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('security')">
+        <span class="toggle-icon">{{ expandedSections['security'] ? '▼' : '▶' }}</span>
+        <h2>🔒 Security Findings ({{ getFilteredSecurityIssues().length }})</h2>
+      </div>
+
+      <div *ngIf="expandedSections['security']" class="section-content">
+        <div class="filter-bar">
+          <select [(ngModel)]="filters.security.severity" class="filter-select">
+            <option value="all">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div *ngIf="getFilteredSecurityIssues().length === 0" class="empty-section">No security issues found</div>
+
+        <div *ngFor="let sec of getFilteredSecurityIssues()" class="issue-card" [class.expanded]="isIssueExpanded(sec.id)">
+          <div class="issue-header" (click)="toggleIssue(sec.id)">
+            <span class="severity-badge" [ngClass]="getSeverityClass(sec.severity)">
+              {{ getSeverityIcon(sec.severity) }} {{ sec.severity }}
+            </span>
+            <span class="issue-title">{{ sec.title }}</span>
+            <span class="toggle-arrow">{{ isIssueExpanded(sec.id) ? '▼' : '▶' }}</span>
+          </div>
+
+          <div *ngIf="isIssueExpanded(sec.id)" class="issue-body">
+            <div class="issue-meta">
+              <span class="file-location">📄 {{ sec.file }}:{{ sec.lineNumber }}</span>
+              <span class="vuln-type">{{ sec.vulnerabilityType }}</span>
+              <span class="owasp">OWASP: {{ sec.owasp }}</span>
+              <span class="cwe">CWE-{{ sec.cweId }}</span>
+            </div>
+
+            <div class="description">
+              <strong>Description:</strong>
+              <p>{{ sec.description }}</p>
+            </div>
+
+            <div class="code-snippet">
+              <strong>Code:</strong>
+              <pre><code>{{ sec.codeSnippet }}</code></pre>
+            </div>
+
+            <div class="remediation">
+              <strong>Remediation:</strong>
+              <p>{{ sec.remediation }}</p>
+            </div>
+
+            <div class="impact-info">
+              <span class="impact-score">Impact Score: {{ sec.impactScore }}/10</span>
+              <span class="affected">Affected: {{ sec.affectedSystems?.join(', ') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('performance')">
+        <span class="toggle-icon">{{ expandedSections['performance'] ? '▼' : '▶' }}</span>
+        <h2>⚡ Performance Issues ({{ getFilteredPerformanceIssues().length }})</h2>
+      </div>
+
+      <div *ngIf="expandedSections['performance']" class="section-content">
+        <div class="filter-bar">
+          <select [(ngModel)]="filters.performance.severity" class="filter-select">
+            <option value="all">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+          </select>
+        </div>
+
+        <div *ngIf="getFilteredPerformanceIssues().length === 0 && (!analysis.findings?.performance?.metrics || analysis.findings.performance.metrics.length === 0)" class="empty-section">
+          No performance issues found
+        </div>
+
+        <div *ngFor="let perf of getFilteredPerformanceIssues()" class="issue-card" [class.expanded]="isIssueExpanded(perf.id)">
+          <div class="issue-header" (click)="toggleIssue(perf.id)">
+            <span class="severity-badge" [ngClass]="getSeverityClass(perf.severity)">
+              {{ getSeverityIcon(perf.severity) }} {{ perf.severity }}
+            </span>
+            <span class="issue-title">{{ perf.title }}</span>
+            <span class="toggle-arrow">{{ isIssueExpanded(perf.id) ? '▼' : '▶' }}</span>
+          </div>
+
+          <div *ngIf="isIssueExpanded(perf.id)" class="issue-body">
+            <div class="issue-meta">
+              <span class="file-location">📄 {{ perf.file }}</span>
+              <span class="metric-type">{{ perf.metricType }}</span>
+            </div>
+
+            <div class="description">
+              <strong>Description:</strong>
+              <p>{{ perf.description }}</p>
+            </div>
+
+            <div class="metric-values">
+              <div class="metric">
+                <span class="label">Current:</span>
+                <span class="value">{{ perf.currentValue }} {{ perf.unit }}</span>
+              </div>
+              <div class="metric">
+                <span class="label">Target:</span>
+                <span class="value">{{ perf.targetValue }} {{ perf.unit }}</span>
+              </div>
+            </div>
+
+            <div class="suggestion">
+              <strong>Recommendation:</strong>
+              <p>{{ perf.suggestion }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Sub-section -->
+        <div *ngIf="analysis.findings?.performance?.metrics && analysis.findings.performance.metrics.length > 0" class="metrics-subsection">
+          <h4>Performance Metrics</h4>
+          <div *ngFor="let metric of analysis.findings.performance.metrics" class="metric-card">
+            <div class="metric-header">
+              <span class="metric-name">{{ metric.name }}</span>
+              <span class="metric-value">{{ metric.currentValue }} {{ metric.unit }}</span>
+            </div>
+            <div class="metric-bar">
+              <div class="metric-fill" [style.width.%]="Math.min((metric.currentValue / metric.targetValue) * 100, 100)"></div>
+            </div>
+            <div class="metric-footer">
+              <span>Target: {{ metric.targetValue }} {{ metric.unit }}</span>
+              <span [class]="'trend-' + metric.trend">{{ metric.trend === 'improving' ? '↑' : metric.trend === 'declining' ? '↓' : '→' }} {{ metric.trend }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Quality Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('codeQuality')">
+        <span class="toggle-icon">{{ expandedSections['codeQuality'] ? '▼' : '▶' }}</span>
+        <h2>📐 Code Quality Findings ({{ getFilteredCodeQuality().length }})</h2>
+      </div>
+
+      <div *ngIf="expandedSections['codeQuality']" class="section-content">
+        <div class="filter-bar">
+          <select [(ngModel)]="filters.codeQuality.severity" class="filter-select">
+            <option value="all">All Severities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+
+        <div *ngIf="getFilteredCodeQuality().length === 0" class="empty-section">No code quality issues found</div>
+
+        <div *ngFor="let cq of getFilteredCodeQuality()" class="issue-card" [class.expanded]="isIssueExpanded(cq.id)">
+          <div class="issue-header" (click)="toggleIssue(cq.id)">
+            <span class="severity-badge" [ngClass]="getSeverityClass(cq.severity)">
+              {{ getSeverityIcon(cq.severity) }} {{ cq.severity }}
+            </span>
+            <span class="issue-title">{{ cq.title }}</span>
+            <span class="tech-debt">💼 {{ cq.technicalDebtMinutes }}m</span>
+            <span class="toggle-arrow">{{ isIssueExpanded(cq.id) ? '▼' : '▶' }}</span>
+          </div>
+
+          <div *ngIf="isIssueExpanded(cq.id)" class="issue-body">
+            <div class="issue-meta">
+              <span class="file-location">📄 {{ cq.file }}:{{ cq.lineNumber }}</span>
+              <span class="category">{{ cq.category }}</span>
+            </div>
+
+            <div class="description">
+              <strong>Description:</strong>
+              <p>{{ cq.description }}</p>
+            </div>
+
+            <div class="code-snippet" *ngIf="cq.codeSnippet">
+              <strong>Code:</strong>
+              <pre><code>{{ cq.codeSnippet }}</code></pre>
+            </div>
+
+            <div class="suggestion">
+              <strong>Suggestion:</strong>
+              <p>{{ cq.suggestion }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tests Section -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('tests')">
+        <span class="toggle-icon">{{ expandedSections['tests'] ? '▼' : '▶' }}</span>
+        <h2>✅ Test Recommendations ({{ getFilteredTests().length }})</h2>
+      </div>
+
+      <div *ngIf="expandedSections['tests']" class="section-content">
+        <div class="filter-bar">
+          <select [(ngModel)]="filters.tests.type" class="filter-select">
+            <option value="all">All Types</option>
+            <option value="UNIT">Unit</option>
+            <option value="INTEGRATION">Integration</option>
+            <option value="E2E">E2E</option>
+            <option value="SECURITY">Security</option>
+            <option value="PERFORMANCE">Performance</option>
+          </select>
+          <select [(ngModel)]="filters.tests.status" class="filter-select">
+            <option value="all">All Statuses</option>
+            <option value="suggested">Suggested</option>
+            <option value="in-progress">In Progress</option>
+            <option value="implemented">Implemented</option>
+            <option value="passed">Passed</option>
+          </select>
+        </div>
+
+        <div *ngIf="getFilteredTests().length === 0" class="empty-section">No tests recommended</div>
+
+        <div *ngFor="let test of getFilteredTests()" class="test-card" [class.expanded]="isIssueExpanded(test.id)">
+          <div class="test-header" (click)="toggleIssue(test.id)">
+            <span class="test-type">{{ test.type }}</span>
+            <span class="test-title">{{ test.name }}</span>
+            <span class="priority-badge" [class]="'priority-' + (test.priority || 'medium').toLowerCase()">
+              {{ test.priority }}
+            </span>
+            <span class="toggle-arrow">{{ isIssueExpanded(test.id) ? '▼' : '▶' }}</span>
+          </div>
+
+          <div *ngIf="isIssueExpanded(test.id)" class="test-body">
+            <p class="description">{{ test.description }}</p>
+            
+            <div class="test-meta">
+              <span class="file">📄 {{ test.file }}</span>
+              <span class="time">⏱️ {{ test.estimatedMinutes }}m</span>
+            </div>
+
+            <div class="expected-behavior">
+              <strong>Expected Behavior:</strong>
+              <p>{{ test.expectedBehavior }}</p>
+            </div>
+
+            <div class="code-section">
+              <strong>Setup Code:</strong>
+              <pre><code>{{ test.setupCode }}</code></pre>
+            </div>
+
+            <div class="code-section">
+              <strong>Assertion:</strong>
+              <pre><code>{{ test.assertionCode }}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
