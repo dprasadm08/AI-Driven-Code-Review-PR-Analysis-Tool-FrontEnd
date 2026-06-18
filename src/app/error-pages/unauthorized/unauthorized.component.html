@@ -1,0 +1,52 @@
+<div class="error-page">
+  <div class="error-card">
+
+    <!-- Icon -->
+    <div class="icon-wrap">
+      <div class="shield">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+          <path d="M32 4L8 14v18c0 13.3 10.3 25.7 24 29 13.7-3.3 24-15.7 24-29V14L32 4z"
+                fill="#ffeef0" stroke="#d73a49" stroke-width="2.5"/>
+          <line x1="22" y1="22" x2="42" y2="42" stroke="#d73a49" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="42" y1="22" x2="22" y2="42" stroke="#d73a49" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="code-badge">403</div>
+    </div>
+
+    <!-- Title -->
+    <h1>Access Denied</h1>
+    <p class="subtitle">You don't have permission to view this page.</p>
+
+    <!-- Divider -->
+    <hr class="divider" />
+
+    <!-- Reason list -->
+    <div class="reason-box">
+      <p class="reason-title">This may be because:</p>
+      <ul>
+        <li>Your account role does not have access to this section</li>
+        <li>Your session has expired — please log in again</li>
+        <li>The resource requires elevated privileges</li>
+        <li>You followed a link that is not available to your account</li>
+      </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" (click)="goToDashboard()">
+        <span class="btn-icon">🏠</span> Go to Dashboard
+      </button>
+      <button class="btn btn-secondary" (click)="goBack()">
+        <span class="btn-icon">←</span> Go Back
+      </button>
+    </div>
+
+    <!-- Support hint -->
+    <p class="support-hint">
+      If you believe this is a mistake, contact your administrator or
+      <a routerLink="/settings">review your account settings</a>.
+    </p>
+
+  </div>
+</div>

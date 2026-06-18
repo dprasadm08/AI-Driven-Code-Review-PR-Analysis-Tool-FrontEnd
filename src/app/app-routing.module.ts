@@ -43,12 +43,17 @@ const routes: Routes = [
     canActivateChild: [AuthGuard]
   },
   {
+    path: 'errors',
+    loadChildren: () => import('./error-pages/error-pages.module').then(m => m.ErrorPagesModule)
+  },
+  {
     path: 'unauthorized',
-    redirectTo: '/dashboard'
+    redirectTo: '/errors/unauthorized',
+    pathMatch: 'full'
   },
   {
     path: '**',
-    redirectTo: '/dashboard'
+    redirectTo: '/errors/not-found'
   }
 ];
 

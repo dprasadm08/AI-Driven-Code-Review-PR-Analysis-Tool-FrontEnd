@@ -47,7 +47,7 @@ export class RoleGuard implements CanActivate {
     
     if (!user || !user.role) {
       console.warn('User role not found');
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/errors/unauthorized']);
       return false;
     }
 
@@ -56,7 +56,7 @@ export class RoleGuard implements CanActivate {
     
     if (!hasRole) {
       console.warn(`Access denied. Required roles: ${requiredRoles.join(', ')}, User role: ${user.role}`);
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/errors/unauthorized']);
       return false;
     }
 

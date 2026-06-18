@@ -58,7 +58,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
         
         if (!userRole || !requiredRoles.includes(userRole)) {
           console.warn('Access denied: Insufficient permissions');
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/errors/unauthorized']);
           return false;
         }
       }

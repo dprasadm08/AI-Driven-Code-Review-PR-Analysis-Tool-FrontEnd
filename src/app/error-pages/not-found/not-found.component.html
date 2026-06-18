@@ -1,0 +1,55 @@
+<div class="error-page">
+  <div class="error-card">
+
+    <!-- Icon -->
+    <div class="icon-wrap">
+      <div class="icon-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="26" fill="#f6f8fa" stroke="#959da5" stroke-width="2.5"/>
+          <text x="32" y="38" text-anchor="middle" font-size="22" font-weight="800" fill="#6a737d">?</text>
+        </svg>
+      </div>
+      <div class="code-badge">404</div>
+    </div>
+
+    <!-- Title -->
+    <h1>Page Not Found</h1>
+    <p class="subtitle">The page you're looking for doesn't exist or has been moved.</p>
+
+    <!-- Divider -->
+    <hr class="divider" />
+
+    <!-- Suggestions -->
+    <div class="suggestions-box">
+      <p class="suggestions-title">You might want to:</p>
+      <ul>
+        <li>Double-check the URL for typos</li>
+        <li>Return to the dashboard and navigate from there</li>
+        <li>Check if the resource was deleted or renamed</li>
+        <li>Contact your administrator if the link came from within the app</li>
+      </ul>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <p class="quick-links-title">Quick Links</p>
+      <div class="links-row">
+        <a routerLink="/dashboard" class="quick-link">🏠 Dashboard</a>
+        <a routerLink="/repositories" class="quick-link">📁 Repositories</a>
+        <a routerLink="/pull-requests" class="quick-link">🔀 Pull Requests</a>
+        <a routerLink="/analysis" class="quick-link">🔍 Analysis</a>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" (click)="goToDashboard()">
+        <span class="btn-icon">🏠</span> Go to Dashboard
+      </button>
+      <button class="btn btn-secondary" (click)="goBack()">
+        <span class="btn-icon">←</span> Go Back
+      </button>
+    </div>
+
+  </div>
+</div>
