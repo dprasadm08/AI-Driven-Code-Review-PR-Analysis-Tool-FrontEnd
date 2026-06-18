@@ -541,6 +541,7 @@ export class AnalysisDashboardComponent implements OnInit, OnDestroy {
           description: 'Images not optimized and served at full resolution, consuming bandwidth unnecessarily',
           severity: PerformanceSeverity.MEDIUM,
           metricType: MetricType.NETWORK,
+          file: 'src/assets/images',
           currentValue: 15,
           targetValue: 3,
           unit: 'MB',

@@ -252,4 +252,16 @@ export class SignupComponent {
     this.formErrors[field] = '';
     this.errorMessage = '';
   }
+
+  passwordHasMixedCase(): boolean {
+    return /[a-z]/.test(this.password) && /[A-Z]/.test(this.password);
+  }
+
+  passwordHasNumber(): boolean {
+    return /[0-9]/.test(this.password);
+  }
+
+  passwordHasSpecial(): boolean {
+    return /[^a-zA-Z0-9]/.test(this.password);
+  }
 }

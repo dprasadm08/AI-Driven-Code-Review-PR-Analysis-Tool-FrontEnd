@@ -107,9 +107,9 @@
           <p class="requirements-title">Password must contain:</p>
           <ul>
             <li [class.met]="password.length >= 8">✓ At least 8 characters</li>
-            <li [class.met]="/[a-z]/.test(password) && /[A-Z]/.test(password)">✓ Uppercase & lowercase letters</li>
-            <li [class.met]="/[0-9]/.test(password)">✓ At least one number</li>
-            <li [class.met]="/[^a-zA-Z0-9]/.test(password)">✓ At least one special character</li>
+            <li [class.met]="passwordHasMixedCase()">✓ Uppercase & lowercase letters</li>
+            <li [class.met]="passwordHasNumber()">✓ At least one number</li>
+            <li [class.met]="passwordHasSpecial()">✓ At least one special character</li>
           </ul>
         </div>
       </div>

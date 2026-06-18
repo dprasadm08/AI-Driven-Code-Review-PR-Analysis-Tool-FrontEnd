@@ -1,1 +1,13 @@
-<aside class="sidebar">\n  <div class="sidebar-content">\n    <nav class="sidebar-nav">\n      <a *ngFor=\"let item of menuItems\" \n         [routerLink]=\"item.path\" \n         routerLinkActive=\"active\"\n         class=\"sidebar-item\">\n        <span class=\"sidebar-icon\">{{ item.icon }}</span>\n        <span class=\"sidebar-label\">{{ item.label }}</span>\n      </a>\n    </nav>\n  </div>\n</aside>\n
+﻿<aside class="sidebar">
+  <div class="sidebar-content">
+    <nav class="sidebar-nav">
+      <a *ngFor="let item of menuItems" 
+         [routerLink]="item.path" 
+         routerLinkActive="active"
+         class="sidebar-item">
+        <span class="sidebar-icon">{{ item.icon }}</span>
+        <span class="sidebar-label">{{ item.label }}</span>
+      </a>
+    </nav>
+  </div>
+</aside>

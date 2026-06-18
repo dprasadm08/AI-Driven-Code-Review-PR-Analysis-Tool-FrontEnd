@@ -1,1 +1,11 @@
-import { Component, Input } from '@angular/core';\n\n@Component({\n  selector: 'app-error-message',\n  templateUrl: './error-message.component.html',\n  styleUrls: ['./error-message.component.css']\n})\nexport class ErrorMessageComponent {\n  @Input() message: string = '';\n  @Input() type: 'error' | 'warning' | 'info' = 'error';\n}\n
+﻿import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-error-message',
+  templateUrl: './error-message.component.html',
+  styleUrls: ['./error-message.component.css']
+})
+export class ErrorMessageComponent {
+  @Input() message: string = '';
+  @Input() type: 'error' | 'warning' | 'info' = 'error';
+}

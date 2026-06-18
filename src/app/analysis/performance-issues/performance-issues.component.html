@@ -96,7 +96,7 @@
         </div>
         <div class="header-badges">
           <app-severity-badge 
-            [severity]="issue.severity" 
+            [severity]="$any(issue.severity)" 
             [size]="'medium'">
           </app-severity-badge>
           <span class="impact-badge" [style.backgroundColor]="getImpactColor(issue.impact)">

@@ -52,10 +52,10 @@
   </div>
 
   <!-- Recommendations -->
-  <div *ngIf="!isLoading && analysis?.recommendations && analysis.recommendations.length > 0" class="recommendations-box">
+  <div *ngIf="!isLoading && analysis?.recommendations?.length" class="recommendations-box">
     <h3>Key Recommendations</h3>
     <ul>
-      <li *ngFor="let rec of analysis.recommendations">{{ rec }}</li>
+      <li *ngFor="let rec of analysis?.recommendations">{{ rec }}</li>
     </ul>
   </div>
 
@@ -248,7 +248,7 @@
             </div>
             <div class="metric-footer">
               <span>Target: {{ metric.targetValue }} {{ metric.unit }}</span>
-              <span [class]="'trend-' + metric.trend">{{ metric.trend === 'improving' ? '↑' : metric.trend === 'declining' ? '↓' : '→' }} {{ metric.trend }}</span>
+              <span [class]="'trend-' + metric.trend">{{ metric.trend === 'improving' ? '↑' : metric.trend === 'degrading' ? '↓' : '→' }} {{ metric.trend }}</span>
             </div>
           </div>
         </div>

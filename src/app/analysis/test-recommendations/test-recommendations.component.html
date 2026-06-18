@@ -106,7 +106,7 @@
         </div>
         <div class="header-badges">
           <app-severity-badge 
-            [severity]="testCase.priority" 
+            [severity]="$any(testCase.priority)" 
             [size]="'small'">
           </app-severity-badge>
           <span 

@@ -291,4 +291,12 @@ export class PrDetailsComponent implements OnInit, OnDestroy {
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
     return 'Just now';
   }
+
+  getScoreClass(score: number): string {
+    if (score >= 90) return 'score-safe';
+    if (score >= 75) return 'score-low';
+    if (score >= 55) return 'score-medium';
+    if (score >= 35) return 'score-high';
+    return 'score-critical';
+  }
 }

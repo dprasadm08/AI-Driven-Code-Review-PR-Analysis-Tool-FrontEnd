@@ -9,7 +9,8 @@ import {
   ProviderConfig,
   ProviderSelection,
   ProviderStats,
-  AIProviderType
+  AIProviderType,
+  ModelCapability
 } from '../models/ai-provider.model';
 
 /**
@@ -53,7 +54,7 @@ export class AIProviderService {
             id: 'gpt-4',
             name: 'GPT-4',
             displayName: 'GPT-4 Turbo',
-            capabilities: ['CODE_REVIEW', 'SECURITY_ANALYSIS', 'BEST_PRACTICES'],
+            capabilities: [ModelCapability.CODE_REVIEW, ModelCapability.SECURITY_ANALYSIS, ModelCapability.BEST_PRACTICES],
             maxTokens: 128000,
             costPer1kTokens: 0.01
           },
@@ -61,7 +62,7 @@ export class AIProviderService {
             id: 'gpt-3.5-turbo',
             name: 'GPT-3.5 Turbo',
             displayName: 'GPT-3.5 Turbo',
-            capabilities: ['CODE_REVIEW', 'BEST_PRACTICES'],
+            capabilities: [ModelCapability.CODE_REVIEW, ModelCapability.BEST_PRACTICES],
             maxTokens: 4096,
             costPer1kTokens: 0.0005
           }
@@ -82,7 +83,7 @@ export class AIProviderService {
             id: 'claude-3-opus',
             name: 'Claude 3 Opus',
             displayName: 'Claude 3 Opus',
-            capabilities: ['CODE_REVIEW', 'SECURITY_ANALYSIS', 'BEST_PRACTICES'],
+            capabilities: [ModelCapability.CODE_REVIEW, ModelCapability.SECURITY_ANALYSIS, ModelCapability.BEST_PRACTICES],
             maxTokens: 200000,
             costPer1kTokens: 0.015
           },
@@ -90,7 +91,7 @@ export class AIProviderService {
             id: 'claude-3-sonnet',
             name: 'Claude 3 Sonnet',
             displayName: 'Claude 3 Sonnet',
-            capabilities: ['CODE_REVIEW', 'BEST_PRACTICES'],
+            capabilities: [ModelCapability.CODE_REVIEW, ModelCapability.BEST_PRACTICES],
             maxTokens: 200000,
             costPer1kTokens: 0.003
           }
@@ -111,7 +112,7 @@ export class AIProviderService {
             id: 'gemini-pro',
             name: 'Gemini Pro',
             displayName: 'Gemini Pro',
-            capabilities: ['CODE_REVIEW', 'BEST_PRACTICES'],
+            capabilities: [ModelCapability.CODE_REVIEW, ModelCapability.BEST_PRACTICES],
             maxTokens: 32768,
             costPer1kTokens: 0.005
           }

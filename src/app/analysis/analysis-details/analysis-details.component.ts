@@ -189,7 +189,7 @@ export class AnalysisDetailsComponent implements OnInit, OnDestroy {
         technicalDebt: 720
       },
       recommendations: ['Fix SQL injection vulnerability immediately', 'Remove hardcoded API keys', 'Optimize bundle size']
-    } as CombinedAnalysisResponse;
+    } as unknown as CombinedAnalysisResponse;
   }
 
   toggleSection(section: string): void {

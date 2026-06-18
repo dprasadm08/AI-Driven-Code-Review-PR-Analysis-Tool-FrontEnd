@@ -93,7 +93,7 @@
             </span>
           </td>
           <td>
-            <span class="risk-badge" [ngClass]="getRiskClass(item.summary?.riskLevel)">
+            <span class="risk-badge" [ngClass]="getRiskClass(item.summary?.riskLevel || '')">  
               {{ item.summary?.riskLevel | titlecase }}
             </span>
           </td>
@@ -101,7 +101,7 @@
             <span class="issue-count" [class.zero]="item.totalIssues === 0">
               {{ item.totalIssues }}
             </span>
-            <span *ngIf="item.summary?.criticalCount > 0" class="crit-pill">
+            <span *ngIf="(item.summary?.criticalCount || 0) > 0" class="crit-pill">
               {{ item.summary?.criticalCount }} critical
             </span>
           </td>

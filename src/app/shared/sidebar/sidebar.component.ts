@@ -1,1 +1,15 @@
-import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-sidebar',\n  templateUrl: './sidebar.component.html',\n  styleUrls: ['./sidebar.component.css']\n})\nexport class SidebarComponent {\n  menuItems = [\n    { path: '/dashboard', icon: '📊', label: 'Dashboard' },\n    { path: '/repositories', icon: '📁', label: 'Repositories' },\n    { path: '/pull-requests', icon: '🔀', label: 'Pull Requests' },\n    { path: '/analysis', icon: '🔍', label: 'Analysis' }\n  ];\n}\n
+﻿import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-sidebar',
+  templateUrl: './sidebar.component.html',
+  styleUrls: ['./sidebar.component.css']
+})
+export class SidebarComponent {
+  menuItems = [
+    { path: '/dashboard', icon: '📊', label: 'Dashboard' },
+    { path: '/repositories', icon: '📁', label: 'Repositories' },
+    { path: '/pull-requests', icon: '🔀', label: 'Pull Requests' },
+    { path: '/analysis', icon: '🔍', label: 'Analysis' }
+  ];
+}

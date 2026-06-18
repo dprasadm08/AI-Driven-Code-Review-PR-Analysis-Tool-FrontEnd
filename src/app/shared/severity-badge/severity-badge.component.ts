@@ -1,8 +1,10 @@
 import { Component, Input } from '@angular/core';
 import { SecuritySeverity } from '../../core/models/security.model';
 import { SeverityLevel } from '../../core/models/analysis.model';
+import { PerformanceSeverity } from '../../core/models/performance.model';
+import { TestPriority } from '../../core/models/test-recommendation.model';
 
-type SeverityType = SecuritySeverity | SeverityLevel;
+type SeverityType = SecuritySeverity | SeverityLevel | PerformanceSeverity | TestPriority;
 
 @Component({
   selector: 'app-severity-badge',
@@ -10,7 +12,7 @@ type SeverityType = SecuritySeverity | SeverityLevel;
   styleUrls: ['./severity-badge.component.css']
 })
 export class SeverityBadgeComponent {
-  @Input() severity: SeverityType;
+  @Input() severity!: SeverityType;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
   @Input() showIcon = true;
   @Input() showLabel = true;
@@ -20,32 +22,24 @@ export class SeverityBadgeComponent {
 
   getSeverityColor(): string {
     const colors: Record<string, string> = {
-      [SecuritySeverity.CRITICAL]: '#dc2626',
-      [SecuritySeverity.HIGH]: '#ea580c',
-      [SecuritySeverity.MEDIUM]: '#f59e0b',
-      [SecuritySeverity.LOW]: '#10b981',
-      [SeverityLevel.CRITICAL]: '#dc2626',
-      [SeverityLevel.HIGH]: '#ea580c',
-      [SeverityLevel.MEDIUM]: '#f59e0b',
-      [SeverityLevel.LOW]: '#10b981',
-      [SeverityLevel.INFO]: '#06b6d4'
+      'critical': '#dc2626',
+      'high': '#ea580c',
+      'medium': '#f59e0b',
+      'low': '#10b981',
+      'info': '#06b6d4'
     };
-    return colors[this.severity as string] || '#6b7280';
+    return colors[(this.severity as string)?.toLowerCase()] || '#6b7280';
   }
 
   getSeverityIcon(): string {
     const icons: Record<string, string> = {
-      [SecuritySeverity.CRITICAL]: '🔴',
-      [SecuritySeverity.HIGH]: '🟠',
-      [SecuritySeverity.MEDIUM]: '🟡',
-      [SecuritySeverity.LOW]: '🟢',
-      [SeverityLevel.CRITICAL]: '⚠️',
-      [SeverityLevel.HIGH]: '❌',
-      [SeverityLevel.MEDIUM]: '⚡',
-      [SeverityLevel.LOW]: '✓',
-      [SeverityLevel.INFO]: 'ℹ️'
+      'critical': '🔴',
+      'high': '🟠',
+      'medium': '🟡',
+      'low': '🟢',
+      'info': 'ℹ️'
     };
-    return icons[this.severity as string] || '📌';
+    return icons[(this.severity as string)?.toLowerCase()] || '📌';
   }
 
   getSeverityLabel(): string {
@@ -58,16 +52,12 @@ export class SeverityBadgeComponent {
 
   getBackgroundClass(): string {
     const backgrounds: Record<string, string> = {
-      [SecuritySeverity.CRITICAL]: 'bg-red-50',
-      [SecuritySeverity.HIGH]: 'bg-orange-50',
-      [SecuritySeverity.MEDIUM]: 'bg-amber-50',
-      [SecuritySeverity.LOW]: 'bg-green-50',
-      [SeverityLevel.CRITICAL]: 'bg-red-50',
-      [SeverityLevel.HIGH]: 'bg-orange-50',
-      [SeverityLevel.MEDIUM]: 'bg-amber-50',
-      [SeverityLevel.LOW]: 'bg-green-50',
-      [SeverityLevel.INFO]: 'bg-cyan-50'
+      'critical': 'bg-red-50',
+      'high': 'bg-orange-50',
+      'medium': 'bg-amber-50',
+      'low': 'bg-green-50',
+      'info': 'bg-cyan-50'
     };
-    return backgrounds[this.severity as string] || 'bg-gray-50';
+    return backgrounds[(this.severity as string)?.toLowerCase()] || 'bg-gray-50';
   }
 }
