@@ -9,15 +9,18 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="loading-shell">
-    <div class="spinner"></div>
-    <p>Loading analysis details...</p>
-  </div>
+  <app-loading-spinner *ngIf="isLoading" [fullscreen]="false" [message]="loadingMessage"></app-loading-spinner>
 
   <!-- Error -->
-  <div *ngIf="!isLoading && errorMessage" class="error-shell">
-    <p>{{ errorMessage }}</p>
-  </div>
+  <app-error-message
+    *ngIf="!isLoading && errorMessage"
+    [message]="errorMessage"
+    type="error"
+    [showRetry]="!!analysisId"
+    [retrying]="retrying"
+    retryText="Retry Analysis Load"
+    (retry)="retryLoad()"
+  ></app-error-message>
 
   <!-- Summary Cards -->
   <div *ngIf="!isLoading && analysis" class="summary-grid">

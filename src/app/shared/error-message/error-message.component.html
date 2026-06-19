@@ -1,4 +1,13 @@
 ﻿<div *ngIf="message" class="alert" [ngClass]="'alert-' + type">
   <span class="alert-icon">{{ type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️' }}</span>
   <span class="alert-message">{{ message }}</span>
+  <button
+    *ngIf="showRetry"
+    type="button"
+    class="retry-btn"
+    [disabled]="retrying"
+    (click)="retry.emit()"
+  >
+    {{ retrying ? 'Retrying...' : retryText }}
+  </button>
 </div>

@@ -20,6 +20,8 @@ export class AnalysisDetailsComponent implements OnInit, OnDestroy {
   analysis: CombinedAnalysisResponse | null = null;
   isLoading = false;
   errorMessage = '';
+  loadingMessage = 'Loading analysis details...';
+  retrying = false;
 
   // Section expansion state
   expandedSections: Record<string, boolean> = {
@@ -66,8 +68,19 @@ export class AnalysisDetailsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  retryLoad(): void {
+    if (!this.analysisId) {
+      return;
+    }
+    this.retrying = true;
+    this.errorMessage = '';
+    this.loadingMessage = 'Retrying analysis load...';
+    this.loadAnalysisDetails(this.analysisId);
+  }
+
   private loadAnalysisDetails(analysisId: string): void {
     this.isLoading = true;
+    this.loadingMessage = this.retrying ? 'Retrying analysis load...' : 'Loading analysis details...';
     this.analysisService
       .getAnalysis(analysisId)
       .pipe(takeUntil(this.destroy$))
@@ -75,12 +88,16 @@ export class AnalysisDetailsComponent implements OnInit, OnDestroy {
         next: (analysis) => {
           this.analysis = analysis;
           this.isLoading = false;
+          this.retrying = false;
+          this.loadingMessage = 'Loading analysis details...';
         },
         error: (error) => {
           console.error('Failed to load analysis:', error);
           this.errorMessage = `Failed to load analysis: ${error.message}`;
           this.isLoading = false;
-          this.loadMockAnalysis();
+          this.retrying = false;
+          this.loadingMessage = 'Loading analysis details...';
+          this.analysis = null;
         }
       });
   }

@@ -1,6 +1,9 @@
-﻿<div class="spinner-overlay">
+﻿<div class="spinner-overlay" [class.inline]="!fullscreen">
   <div class="spinner-container">
     <div class="spinner"></div>
-    <p>{{ message }}</p>
+    <p class="message">{{ message }}</p>
+    <div class="loading-dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 </div>

@@ -14,6 +14,8 @@ export class AnalysisHistoryComponent implements OnInit, OnDestroy {
   filteredHistory: AnalysisHistory[] = [];
   isLoading = false;
   errorMessage = '';
+  loadingMessage = 'Loading analysis history...';
+  retrying = false;
 
   // Filters
   filterStatus: string = 'all';
@@ -44,8 +46,16 @@ export class AnalysisHistoryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  retryLoad(): void {
+    this.retrying = true;
+    this.errorMessage = '';
+    this.loadingMessage = 'Retrying analysis history...';
+    this.loadMockHistory();
+  }
+
   private loadMockHistory(): void {
     this.isLoading = true;
+    this.loadingMessage = this.retrying ? 'Retrying analysis history...' : 'Loading analysis history...';
     setTimeout(() => {
       this.history = [
         {
@@ -123,6 +133,8 @@ export class AnalysisHistoryComponent implements OnInit, OnDestroy {
       ] as AnalysisHistory[];
       this.applyFilters();
       this.isLoading = false;
+      this.retrying = false;
+      this.loadingMessage = 'Loading analysis history...';
     }, 800);
   }
 

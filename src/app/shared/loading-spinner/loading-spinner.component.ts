@@ -7,4 +7,5 @@
 })
 export class LoadingSpinnerComponent {
   @Input() message: string = 'Loading...';
+  @Input() fullscreen: boolean = true;
 }
