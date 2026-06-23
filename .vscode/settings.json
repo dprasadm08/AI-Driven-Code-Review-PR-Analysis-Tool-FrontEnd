@@ -1,4 +1,14 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": false
+  "typescript.enablePromptUseWorkspaceTsdk": false,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "files.exclude": {
+    "node_modules": true
+  },
+  "search.exclude": {
+    "node_modules": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
