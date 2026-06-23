@@ -8,6 +8,8 @@ import { LoadingSpinnerComponent } from './loading-spinner/loading-spinner.compo
 import { ErrorMessageComponent } from './error-message/error-message.component';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import { SeverityBadgeComponent } from './severity-badge/severity-badge.component';
+import { HttpErrorComponent } from './http-error/http-error.component';
+import { ErrorNotificationComponent } from './error-notification/error-notification.component';
 import { ReplacePipe } from './pipes/replace.pipe';
 
 @NgModule({
@@ -18,6 +20,8 @@ import { ReplacePipe } from './pipes/replace.pipe';
     ErrorMessageComponent,
     ConfirmationDialogComponent,
     SeverityBadgeComponent,
+    HttpErrorComponent,
+    ErrorNotificationComponent,
     ReplacePipe
   ],
   imports: [
@@ -31,6 +35,8 @@ import { ReplacePipe } from './pipes/replace.pipe';
     ErrorMessageComponent,
     ConfirmationDialogComponent,
     SeverityBadgeComponent,
+    HttpErrorComponent,
+    ErrorNotificationComponent,
     ReplacePipe
   ]
 })

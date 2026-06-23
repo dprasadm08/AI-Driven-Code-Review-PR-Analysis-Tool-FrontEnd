@@ -1,6 +1,9 @@
 <div class="app-container">
   <app-navbar></app-navbar>
   
+  <!-- Global Error Notification Container -->
+  <app-error-notification></app-error-notification>
+  
   <div class="main-content" [class.with-sidebar]="showLayout">
     <app-sidebar *ngIf="showLayout"></app-sidebar>
     

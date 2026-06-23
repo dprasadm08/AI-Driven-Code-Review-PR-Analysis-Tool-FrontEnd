@@ -8,20 +8,23 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
+import { ErrorService } from '../services/error.service';
 
 /**
  * Error Interceptor - Handles HTTP errors globally
- * Provides retry logic and user-friendly error messages
+ * Provides retry logic, user-friendly error messages, and centralized error handling
  */
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
+  constructor(private errorService: ErrorService) {}
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       // Retry failed requests (except for certain status codes)
       retry({
         count: 1,
         delay: (error: HttpErrorResponse) => {
-          // Don't retry on client errors or auth errors
+          // Don't retry on client errors (4xx) or auth errors
           if (error.status >= 400 && error.status < 500) {
             throw error;
           }
@@ -33,13 +36,22 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         if (error.error instanceof ErrorEvent) {
           // Client-side error
-          errorMessage = `Client Error: ${error.error.message}`;
-          console.error('Client-side error:', error.error.message);
+          errorMessage = error.error.message || 'Network error occurred';
+          console.error('Client-side error:', errorMessage);
         } else {
-          // Server-side error
+          // Server-side or network error
           errorMessage = this.getServerErrorMessage(error);
-          console.error(`Server Error (${error.status}):`, errorMessage);
+          console.error(`HTTP Error (${error.status}):`, errorMessage);
         }
+
+        // Emit error to global error service for UI handling
+        this.errorService.handleHttpError(
+          error.status || 0,
+          error.statusText || 'Unknown Error',
+          errorMessage,
+          error.url || req.url,
+          error.error
+        );
 
         // Log error for debugging
         this.logError(error);

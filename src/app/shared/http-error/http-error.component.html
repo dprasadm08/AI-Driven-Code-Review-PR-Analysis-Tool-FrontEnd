@@ -1,0 +1,46 @@
+<div *ngIf="error" class="http-error-container" [ngClass]="'error-' + error.type">
+  <!-- Error Header -->
+  <div class="error-header">
+    <span class="error-icon">{{ errorIcon }}</span>
+    <div class="error-title-section">
+      <h2 class="error-title">{{ errorTitle }}</h2>
+      <p class="error-code">Error {{ error.status }}</p>
+    </div>
+    <button *ngIf="error.dismissible" class="close-btn" (click)="onDismiss()">✕</button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message">
+    <p>{{ error.message }}</p>
+  </div>
+
+  <!-- Error Actions -->
+  <div class="error-actions">
+    <button *ngIf="showRetry" class="retry-btn" (click)="onRetry()">
+      🔄 Try Again
+    </button>
+    <button class="details-btn" (click)="toggleDetails()">
+      {{ showDetails ? '▼ Hide Details' : '▶ Show Details' }}
+    </button>
+  </div>
+
+  <!-- Error Details (Expandable) -->
+  <div *ngIf="showDetails" class="error-details">
+    <div class="detail-row">
+      <span class="detail-label">Status:</span>
+      <span class="detail-value">{{ error.status }} {{ error.statusText }}</span>
+    </div>
+    <div class="detail-row" *ngIf="error.url">
+      <span class="detail-label">URL:</span>
+      <span class="detail-value break-word">{{ error.url }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Time:</span>
+      <span class="detail-value">{{ error.timestamp | date:'short' }}</span>
+    </div>
+    <div class="detail-row" *ngIf="error.details">
+      <span class="detail-label">Details:</span>
+      <pre class="detail-value"><code>{{ error.details | json }}</code></pre>
+    </div>
+  </div>
+</div>
