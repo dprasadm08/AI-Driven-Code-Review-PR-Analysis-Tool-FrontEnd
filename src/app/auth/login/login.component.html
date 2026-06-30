@@ -10,7 +10,11 @@
     
     <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
     
-    <form (ngSubmit)="onSubmit()" class="auth-form" #loginForm="ngForm">
+    <form (ngSubmit)="onSubmit()" class="auth-form" #loginForm="ngForm" novalidate>
+      <div *ngIf="submitted && (formErrors.username || formErrors.password)" class="form-warning" role="alert" aria-live="polite">
+        Please correct the highlighted fields before continuing.
+      </div>
+
       <div class="form-group">
         <label class="form-label" for="username">
           <span class="label-icon">👤</span>
@@ -20,16 +24,18 @@
           type="text"
           id="username"
           class="form-control"
-          [class.error]="formErrors.username"
+          [class.error]="hasFieldError('username')"
           [(ngModel)]="username"
           (ngModelChange)="onFieldChange('username')"
           name="username"
           required
+          minlength="3"
           placeholder="Enter your username"
           autocomplete="username"
           [disabled]="isLoading"
+          [attr.aria-invalid]="hasFieldError('username')"
         />
-        <span *ngIf="formErrors.username" class="error-text">{{ formErrors.username }}</span>
+        <span *ngIf="hasFieldError('username')" class="error-text">{{ formErrors.username }}</span>
       </div>
       
       <div class="form-group">
@@ -42,14 +48,16 @@
             [type]="showPassword ? 'text' : 'password'"
             id="password"
             class="form-control password-input"
-            [class.error]="formErrors.password"
+            [class.error]="hasFieldError('password')"
             [(ngModel)]="password"
             (ngModelChange)="onFieldChange('password')"
             name="password"
             required
+            minlength="6"
             placeholder="Enter your password"
             autocomplete="current-password"
             [disabled]="isLoading"
+            [attr.aria-invalid]="hasFieldError('password')"
           />
           <button 
             type="button" 
@@ -62,7 +70,7 @@
             <span *ngIf="showPassword">🙈</span>
           </button>
         </div>
-        <span *ngIf="formErrors.password" class="error-text">{{ formErrors.password }}</span>
+        <span *ngIf="hasFieldError('password')" class="error-text">{{ formErrors.password }}</span>
       </div>
       
       <div class="form-options">
@@ -81,7 +89,7 @@
       <button 
         type="submit" 
         class="btn btn-primary btn-full" 
-        [disabled]="isLoading || !username || !password"
+        [disabled]="isLoading"
       >
         <span *ngIf="!isLoading">Sign In</span>
         <span *ngIf="isLoading" class="loading-text">

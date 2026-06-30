@@ -24,6 +24,7 @@ export class SignupComponent {
   isLoading = false;
   showPassword = false;
   showConfirmPassword = false;
+  submitted = false;
 
   // Form validation errors
   formErrors = {
@@ -203,6 +204,7 @@ export class SignupComponent {
     // Clear previous messages
     this.errorMessage = '';
     this.successMessage = '';
+    this.submitted = true;
 
     // Validate form
     if (!this.validateForm()) {
@@ -251,6 +253,15 @@ export class SignupComponent {
   onFieldChange(field: keyof typeof this.formErrors): void {
     this.formErrors[field] = '';
     this.errorMessage = '';
+
+    // Re-validate as user corrects fields after first submit attempt.
+    if (this.submitted) {
+      this.validateForm();
+    }
+  }
+
+  hasFieldError(field: keyof typeof this.formErrors): boolean {
+    return this.submitted && !!this.formErrors[field];
   }
 
   passwordHasMixedCase(): boolean {

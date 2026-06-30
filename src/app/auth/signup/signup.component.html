@@ -11,7 +11,16 @@
     <app-error-message *ngIf="errorMessage" [message]="errorMessage" type="error"></app-error-message>
     <app-error-message *ngIf="successMessage" [message]="successMessage" type="info"></app-error-message>
     
-    <form (ngSubmit)="onSubmit()" class="auth-form" #signupForm="ngForm">
+    <form (ngSubmit)="onSubmit()" class="auth-form" #signupForm="ngForm" novalidate>
+      <div
+        *ngIf="submitted && (formErrors.username || formErrors.email || formErrors.password || formErrors.confirmPassword || formErrors.terms)"
+        class="form-warning"
+        role="alert"
+        aria-live="polite"
+      >
+        Please fix the highlighted fields and try again.
+      </div>
+
       <div class="form-group">
         <label class="form-label" for="username">
           <span class="label-icon">👤</span>
@@ -21,7 +30,7 @@
           type="text"
           id="username"
           class="form-control"
-          [class.error]="formErrors.username"
+          [class.error]="hasFieldError('username')"
           [(ngModel)]="username"
           (ngModelChange)="onFieldChange('username')"
           (blur)="validateUsername()"
@@ -31,7 +40,7 @@
           autocomplete="username"
           [disabled]="isLoading"
         />
-        <span *ngIf="formErrors.username" class="error-text">{{ formErrors.username }}</span>
+        <span *ngIf="hasFieldError('username')" class="error-text">{{ formErrors.username }}</span>
       </div>
       
       <div class="form-group">
@@ -43,7 +52,7 @@
           type="email"
           id="email"
           class="form-control"
-          [class.error]="formErrors.email"
+          [class.error]="hasFieldError('email')"
           [(ngModel)]="email"
           (ngModelChange)="onFieldChange('email')"
           (blur)="validateEmail()"
@@ -53,7 +62,7 @@
           autocomplete="email"
           [disabled]="isLoading"
         />
-        <span *ngIf="formErrors.email" class="error-text">{{ formErrors.email }}</span>
+        <span *ngIf="hasFieldError('email')" class="error-text">{{ formErrors.email }}</span>
       </div>
       
       <div class="form-group">
@@ -66,7 +75,7 @@
             [type]="showPassword ? 'text' : 'password'"
             id="password"
             class="form-control password-input"
-            [class.error]="formErrors.password"
+            [class.error]="hasFieldError('password')"
             [(ngModel)]="password"
             (ngModelChange)="onPasswordChange()"
             (blur)="validatePassword()"
@@ -87,7 +96,7 @@
             <span *ngIf="showPassword">🙈</span>
           </button>
         </div>
-        <span *ngIf="formErrors.password" class="error-text">{{ formErrors.password }}</span>
+        <span *ngIf="hasFieldError('password')" class="error-text">{{ formErrors.password }}</span>
         
         <!-- Password Strength Indicator -->
         <div *ngIf="password && !formErrors.password" class="password-strength">
@@ -124,8 +133,8 @@
             [type]="showConfirmPassword ? 'text' : 'password'"
             id="confirmPassword"
             class="form-control password-input"
-            [class.error]="formErrors.confirmPassword"
-            [class.success]="confirmPassword && !formErrors.confirmPassword && password === confirmPassword"
+            [class.error]="hasFieldError('confirmPassword')"
+            [class.success]="confirmPassword && !hasFieldError('confirmPassword') && password === confirmPassword"
             [(ngModel)]="confirmPassword"
             (ngModelChange)="onFieldChange('confirmPassword')"
             (blur)="validateConfirmPassword()"
@@ -146,8 +155,8 @@
             <span *ngIf="showConfirmPassword">🙈</span>
           </button>
         </div>
-        <span *ngIf="formErrors.confirmPassword" class="error-text">{{ formErrors.confirmPassword }}</span>
-        <span *ngIf="confirmPassword && !formErrors.confirmPassword && password === confirmPassword" class="success-text">
+        <span *ngIf="hasFieldError('confirmPassword')" class="error-text">{{ formErrors.confirmPassword }}</span>
+        <span *ngIf="confirmPassword && !hasFieldError('confirmPassword') && password === confirmPassword" class="success-text">
           ✓ Passwords match
         </span>
       </div>
@@ -166,13 +175,13 @@
             and <a href="#" class="link">Privacy Policy</a>
           </span>
         </label>
-        <span *ngIf="formErrors.terms" class="error-text">{{ formErrors.terms }}</span>
+        <span *ngIf="hasFieldError('terms')" class="error-text">{{ formErrors.terms }}</span>
       </div>
       
       <button 
         type="submit" 
         class="btn btn-primary btn-full" 
-        [disabled]="isLoading || !username || !email || !password || !confirmPassword || !agreeToTerms"
+        [disabled]="isLoading"
       >
         <span *ngIf="!isLoading">Create Account</span>
         <span *ngIf="isLoading" class="loading-text">

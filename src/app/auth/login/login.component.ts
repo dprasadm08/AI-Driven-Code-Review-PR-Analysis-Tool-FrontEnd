@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl = '/dashboard';
   showPassword = false;
+  submitted = false;
 
   // Form validation
   formErrors = {
@@ -74,6 +75,7 @@ export class LoginComponent implements OnInit {
   onSubmit(): void {
     // Clear previous errors
     this.errorMessage = '';
+    this.submitted = true;
 
     // Validate form
     if (!this.validateForm()) {
@@ -114,5 +116,14 @@ export class LoginComponent implements OnInit {
   onFieldChange(field: 'username' | 'password'): void {
     this.formErrors[field] = '';
     this.errorMessage = '';
+
+    // Re-validate while user is fixing errors after first submit attempt.
+    if (this.submitted) {
+      this.validateForm();
+    }
+  }
+
+  hasFieldError(field: 'username' | 'password'): boolean {
+    return this.submitted && !!this.formErrors[field];
   }
 }

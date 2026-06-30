@@ -71,6 +71,18 @@
   margin-top: 30px;
 }
 
+.form-warning {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid #ffd3d8;
+  border-left: 4px solid #d73a49;
+  border-radius: 6px;
+  background-color: #fff5f5;
+  color: #a82735;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -115,6 +127,7 @@
 .form-control.error {
   border-color: #d73a49;
   background-color: #fff5f5;
+  box-shadow: 0 0 0 3px rgba(215, 58, 73, 0.12);
 }
 
 .error-text {
