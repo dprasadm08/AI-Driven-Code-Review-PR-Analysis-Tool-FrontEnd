@@ -1,0 +1,167 @@
+{
+  "uuid": "a3f1b2c4-0000-0000-0000-000000000001",
+  "lastMigration": 29,
+  "name": "AI PR Review Backend Mock",
+  "endpointPrefix": "api",
+  "latency": 0,
+  "port": 8080,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "r0001",
+      "type": "http",
+      "documentation": "Health check",
+      "method": "get",
+      "endpoint": "health",
+      "responses": [
+        {
+          "uuid": "rp0001",
+          "body": "{ \"status\": \"ok\", \"service\": \"ai-pr-review-backend\", \"timestamp\": \"{{now}}\" }",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "ok",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id"
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "r0002",
+      "type": "http",
+      "documentation": "Auth login stub",
+      "method": "post",
+      "endpoint": "auth/login",
+      "responses": [
+        {
+          "uuid": "rp0002",
+          "body": "{ \"token\": \"mock.jwt.token\", \"user\": { \"id\": \"1\", \"username\": \"dprasadm08\", \"email\": \"dprasadm08@gmail.com\" } }",
+          "latency": 100,
+          "statusCode": 200,
+          "label": "ok",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id"
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "r0003",
+      "type": "http",
+      "documentation": "Repositories list stub",
+      "method": "get",
+      "endpoint": "repositories",
+      "responses": [
+        {
+          "uuid": "rp0003",
+          "body": "[]",
+          "latency": 80,
+          "statusCode": 200,
+          "label": "empty list",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id"
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "r0004",
+      "type": "http",
+      "documentation": "Pull requests list stub",
+      "method": "get",
+      "endpoint": "pull-requests",
+      "responses": [
+        {
+          "uuid": "rp0004",
+          "body": "[]",
+          "latency": 80,
+          "statusCode": 200,
+          "label": "empty list",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id"
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    },
+    {
+      "uuid": "r0005",
+      "type": "http",
+      "documentation": "AI providers stub",
+      "method": "get",
+      "endpoint": "ai-providers",
+      "responses": [
+        {
+          "uuid": "rp0005",
+          "body": "[]",
+          "latency": 50,
+          "statusCode": 200,
+          "label": "empty list",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id"
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": { "enabled": false },
+  "cors": true
+}

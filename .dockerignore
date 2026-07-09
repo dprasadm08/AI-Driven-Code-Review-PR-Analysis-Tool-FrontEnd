@@ -12,3 +12,5 @@ coverage
 Thumbs.db
 tmp
 temp
+# Keep mock/ included in build context (used by Compose volume mount)
+# !mock

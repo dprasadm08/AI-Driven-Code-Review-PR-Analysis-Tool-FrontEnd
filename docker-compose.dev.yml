@@ -1,0 +1,25 @@
+version: "3.9"
+
+# =======================================================
+# Dev override – mounts source, enables live reload
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# =======================================================
+
+services:
+
+  frontend:
+    build:
+      target: build            # use node build stage so ng serve is available
+    command: >
+      sh -c "npm install && npx ng serve --host 0.0.0.0 --port 80 --disable-host-check"
+    volumes:
+      - .:/app:cached
+      - /app/node_modules       # preserve container node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on: {}              # dev: no backend dependency check needed
+
+  backend:
+    image: mockoon/cli:latest
+    volumes:
+      - ./mock/backend-mock.json:/data/mock.json:ro
