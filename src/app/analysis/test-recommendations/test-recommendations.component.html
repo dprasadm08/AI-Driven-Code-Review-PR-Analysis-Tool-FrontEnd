@@ -76,19 +76,19 @@
   </div>
 
   <div class="no-results" *ngIf="!isLoading && filteredTestCases.length === 0 && testCases.length === 0">
-    <div class="empty-state">
-      <span class="empty-icon">✅</span>
-      <h3>No Test Recommendations</h3>
-      <p>Run analysis to get test coverage recommendations for your code.</p>
-    </div>
+    <app-empty-state
+      icon="✅"
+      title="No Test Recommendations"
+      description="Run analysis to get test coverage recommendations for your code.">
+    </app-empty-state>
   </div>
 
   <div class="no-results" *ngIf="!isLoading && filteredTestCases.length === 0 && testCases.length > 0">
-    <div class="empty-state">
-      <span class="empty-icon">🔍</span>
-      <h3>No Tests Match Your Filters</h3>
-      <p>Try adjusting your search or filter criteria.</p>
-    </div>
+    <app-empty-state
+      icon="🔍"
+      title="No Tests Match Your Filters"
+      description="Try adjusting your search or filter criteria.">
+    </app-empty-state>
   </div>
 
   <div class="test-cases-grid" *ngIf="!isLoading && filteredTestCases.length > 0">

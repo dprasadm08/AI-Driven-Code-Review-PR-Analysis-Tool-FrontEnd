@@ -66,20 +66,20 @@
 
   <!-- No Results State -->
   <div class="no-results" *ngIf="!isLoading && filteredFindings.length === 0 && securityFindings.length === 0">
-    <div class="empty-state">
-      <span class="empty-icon">✅</span>
-      <h3>No Security Issues Found</h3>
-      <p>Your code appears to be secure. Run a security scan to verify.</p>
-    </div>
+    <app-empty-state
+      icon="✅"
+      title="No Security Issues Found"
+      description="Your code appears to be secure. Run a security scan to verify.">
+    </app-empty-state>
   </div>
 
   <!-- Filtered Empty State -->
   <div class="no-results" *ngIf="!isLoading && filteredFindings.length === 0 && securityFindings.length > 0">
-    <div class="empty-state">
-      <span class="empty-icon">🔍</span>
-      <h3>No Vulnerabilities Match Your Filters</h3>
-      <p>Try adjusting your search or filter criteria.</p>
-    </div>
+    <app-empty-state
+      icon="🔍"
+      title="No Vulnerabilities Match Your Filters"
+      description="Try adjusting your search or filter criteria.">
+    </app-empty-state>
   </div>
 
   <!-- Vulnerability Cards -->

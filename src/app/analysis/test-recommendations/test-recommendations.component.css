@@ -144,25 +144,6 @@
   }
 }
 
-.empty-state {
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 42px;
-}
-
-.empty-state h3 {
-  margin: 10px 0 8px;
-  font-size: 20px;
-  color: #0f172a;
-}
-
-.empty-state p {
-  margin: 0;
-  color: #64748b;
-}
-
 .test-cases-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));

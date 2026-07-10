@@ -129,30 +129,6 @@
   margin-top: 20px;
 }
 
-.empty-state {
-  text-align: center;
-  color: #6b7280;
-}
-
-.empty-icon {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.empty-state h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.empty-state p {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
 /* Issues Grid */
 .issues-grid {
   display: grid;
