@@ -5,7 +5,7 @@
   <app-error-notification></app-error-notification>
   
   <div class="main-content" [class.with-sidebar]="showLayout">
-    <app-sidebar *ngIf="showLayout"></app-sidebar>
+    <app-sidebar *ngIf="showLayout" class="sidebar-wrapper"></app-sidebar>
     
     <main [class.main-with-sidebar]="showLayout">
       <router-outlet></router-outlet>

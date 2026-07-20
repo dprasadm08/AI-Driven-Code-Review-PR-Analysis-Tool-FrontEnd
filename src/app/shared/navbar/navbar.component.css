@@ -6,22 +6,28 @@
   position: sticky;
   top: 0;
   z-index: 1000;
+  height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .navbar-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 15px 30px;
+  padding: 0 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
 }
 
 .navbar-brand h2 {
   margin: 0;
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .navbar-brand a {
@@ -32,6 +38,7 @@
 .navbar-menu {
   display: flex;
   gap: 30px;
+  flex: 1;
 }
 
 .navbar-menu a {
@@ -42,6 +49,7 @@
   padding: 8px 12px;
   border-radius: 4px;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .navbar-menu a:hover,
@@ -53,9 +61,116 @@
 .navbar-actions {
   display: flex;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .navbar-actions .btn {
   font-size: 14px;
   padding: 8px 16px;
+}
+
+.navbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: auto;
+}
+
+.hamburger {
+  display: block;
+  position: relative;
+  width: 24px;
+  height: 18px;
+}
+
+.hamburger::before,
+.hamburger::after,
+.hamburger {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  left: 0;
+  transition: all 0.3s ease;
+}
+
+.hamburger::before {
+  top: 0;
+}
+
+.hamburger::after {
+  bottom: 0;
+}
+
+.hamburger {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hamburger.active::before {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger.active::after {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+.hamburger.active {
+  background-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 12px;
+  }
+
+  .navbar-brand h2 {
+    font-size: 16px;
+  }
+
+  .navbar-menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: #1f2428;
+    gap: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-bottom: 1px solid #444c56;
+  }
+
+  .navbar-menu.mobile-open {
+    max-height: 500px;
+  }
+
+  .navbar-menu a {
+    padding: 14px 20px;
+    border-radius: 0;
+    font-size: 15px;
+  }
+
+  .navbar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-actions {
+    position: absolute;
+    top: 60px;
+    right: 12px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .navbar-actions .btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
 }

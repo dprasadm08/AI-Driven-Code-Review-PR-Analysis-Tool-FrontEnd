@@ -6,13 +6,17 @@
       </a>
     </div>
     
-    <div class="navbar-menu" *ngIf="isLoggedIn()">
-      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/repositories" routerLinkActive="active">Repositories</a>
-      <a routerLink="/pull-requests" routerLinkActive="active">Pull Requests</a>
-      <a routerLink="/analysis" routerLinkActive="active">Analysis</a>
-      <a routerLink="/settings/ai-provider" routerLinkActive="active">AI Provider</a>
-      <a routerLink="/settings/webhooks" routerLinkActive="active">Webhooks</a>
+    <button class="navbar-toggle" (click)="toggleMobileMenu()" aria-label="Toggle navigation menu">
+      <span class="hamburger" [class.active]="mobileMenuOpen"></span>
+    </button>
+    
+    <div class="navbar-menu" [class.mobile-open]="mobileMenuOpen" *ngIf="isLoggedIn()">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a>
+      <a routerLink="/repositories" routerLinkActive="active" (click)="closeMobileMenu()">Repositories</a>
+      <a routerLink="/pull-requests" routerLinkActive="active" (click)="closeMobileMenu()">Pull Requests</a>
+      <a routerLink="/analysis" routerLinkActive="active" (click)="closeMobileMenu()">Analysis</a>
+      <a routerLink="/settings/ai-provider" routerLinkActive="active" (click)="closeMobileMenu()">AI Provider</a>
+      <a routerLink="/settings/webhooks" routerLinkActive="active" (click)="closeMobileMenu()">Webhooks</a>
     </div>
     
     <div class="navbar-actions">
@@ -21,4 +25,3 @@
     </div>
   </div>
 </nav>
-
